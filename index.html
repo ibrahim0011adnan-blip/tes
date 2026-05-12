@@ -3,72 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Satoru Hub - Final Online ✨</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+    <title>Satoru Hub - Google Login ✨</title>
     
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
     <style>
         body { margin: 0; background: #050505; overflow: hidden; font-family: sans-serif; color: white; touch-action: none; }
         canvas { display: block; width: 100vw; height: 100vh; }
         
-        /* Login UI */
-        #main-ui { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; background: rgba(15, 15, 15, 0.98); padding: 25px; border-radius: 20px; border: 2px solid #5d34a5; width: 85%; max-width: 360px; z-index: 1000; box-shadow: 0 0 20px rgba(93, 52, 165, 0.4); }
-        .input-style { width: 100%; padding: 12px; margin-bottom: 10px; background: #111; border: 1px solid #333; color: white; border-radius: 12px; box-sizing: border-box; outline: none; text-align: center; }
-        .start-btn { background: #5d34a5; color: white; border: none; padding: 15px; border-radius: 12px; cursor: pointer; width: 100%; font-weight: bold; font-size: 16px; }
+        #main-ui { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; background: rgba(15, 15, 15, 0.98); padding: 25px; border-radius: 20px; border: 2px solid #5d34a5; width: 85%; max-width: 360px; z-index: 1000; }
         
-        .social-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
-        .social-btn { background: #fff; color: #000; border: none; padding: 10px; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 13px; }
-
-        /* Crop Modal */
+        .google-btn { 
+            background: white; color: #444; border: none; padding: 12px; border-radius: 12px; 
+            cursor: pointer; width: 100%; font-weight: bold; font-size: 16px; 
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            margin-top: 15px; transition: 0.3s;
+        }
+        .google-btn:hover { background: #eee; }
+        
+        .file-input { margin: 15px 0; font-size: 14px; background: #222; padding: 10px; border-radius: 8px; width: 90%; color: #888; }
+        .start-btn { background: #5d34a5; color: white; border: none; padding: 15px; border-radius: 12px; cursor: pointer; width: 100%; font-weight: bold; font-size: 16px; margin-top: 10px; }
+        
         #crop-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; flex-direction: column; align-items: center; justify-content: center; }
-        .crop-container { width: 90%; max-width: 400px; background: #111; }
-
-        /* Game UI */
+        .crop-container { width: 90%; max-width: 400px; max-height: 70vh; background: #111; overflow: hidden; }
+        .crop-controls { margin-top: 20px; display: flex; gap: 10px; }
+        .crop-btn { background: #5d34a5; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; }
+        
         #game-ui { display: none; position: relative; width: 100vw; height: 100vh; }
-        #chat-input { position: absolute; bottom: 100px; right: 20px; width: 220px; padding: 12px; border-radius: 25px; border: 1px solid #5d34a5; background: rgba(0,0,0,0.6); color: white; outline: none; z-index: 100; }
-        #action-bar { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; z-index: 100; width: 95%; background: rgba(0,0,0,0.7); padding: 10px; border-radius: 20px; }
-        .act-btn { padding: 10px 0; background: #222; border: 1px solid #5d34a5; color: white; border-radius: 12px; font-size: 18px; cursor: pointer; }
-        #room-tag { position: absolute; top: 20px; left: 20px; background: rgba(93, 52, 165, 0.5); padding: 5px 15px; border-radius: 15px; border: 1px solid #5d34a5; z-index: 200; font-size: 14px; }
+        #chat-input { position: absolute; bottom: 100px; right: 20px; width: 250px; padding: 12px; border-radius: 25px; border: 1px solid #5d34a5; background: rgba(0,0,0,0.6); color: white; backdrop-filter: blur(10px); text-align: center; outline: none; font-size: 16px; z-index: 100; }
+        #action-bar { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; z-index: 100; width: 95%; background: rgba(0,0,0,0.7); padding: 10px; border-radius: 20px; backdrop-filter: blur(10px); }
+        .act-btn { padding: 10px 0; background: #222; border: 1px solid #5d34a5; color: white; border-radius: 12px; font-size: 18px; cursor: pointer; text-align: center; }
     </style>
 </head>
 <body>
 
     <div id="main-ui">
-        <h2 style="color: #5d34a5; margin-bottom: 20px;">Satoru Hub</h2>
-        <div id="signup-only" style="display:none;">
-            <p style="font-size: 11px; color: #888;">وێنەیەک بۆ ئاڤاتار هەڵبژێرە</p>
-            <input type="file" id="avatar-upload" class="input-style" accept="image/*">
-        </div>
-        <input type="text" id="auth-user" class="input-style" placeholder="Username">
-        <input type="password" id="auth-pass" class="input-style" placeholder="Password (6+ پیت)">
-        <button class="start-btn" onclick="handleAuth()">Sign In / Sign Up</button>
+        <h2 style="color: #5d34a5; margin-bottom: 5px;">Satoru Hub</h2>
         
-        <div style="margin: 15px 0; color: #444; font-size: 12px;">OR</div>
-        
-        <div class="social-grid">
-            <button class="social-btn" onclick="socialLogin('google')">Google</button>
-            <button class="social-btn" style="background:#000; color:#fff;" onclick="socialLogin('apple')">Apple</button>
-        </div>
-        <p onclick="toggleMode()" id="mode-text" style="font-size:12px; color:#5d34a5; cursor:pointer; margin-top:15px;">Don't have an account? Sign Up</p>
+        <button class="google-btn" onclick="loginWithGoogle()">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/layout/google.svg" width="20">
+            بەردەوامبوون بە Google
+        </button>
+
+        <div style="margin: 15px 0; color: #555;">— یان بە دەستی —</div>
+
+        <input type="file" id="avatar-upload" class="file-input" accept="image/*">
+        <input type="text" id="user-name" style="width:90%; padding:10px; margin-bottom:10px; background:#111; border:1px solid #333; color:white; border-radius:8px; text-align:center;" value="Ibrahim">
+        <button class="start-btn" onclick="enterRoom()">چوونە ژوورەوە ✨</button>
     </div>
 
     <div id="crop-modal">
         <div class="crop-container"><img id="crop-image" style="max-width: 100%;"></div>
-        <button class="start-btn" style="width:auto; padding: 10px 40px; margin-top:10px;" onclick="applyCrop()">✅ تەواو</button>
+        <div class="crop-controls">
+            <button class="crop-btn" onclick="applyCrop()">✅ تەواو</button>
+            <button class="crop-btn" style="background:#444;" onclick="closeCrop()">❌ پاشگەزبونەوە</button>
+        </div>
     </div>
 
     <div id="game-ui">
-        <div id="room-tag">Lobby</div>
         <input type="text" id="chat-input" placeholder="نامەیەک بنوسە...">
         <div id="action-bar">
-            <button class="act-btn" onclick="sendAction('dance')">💃</button>
-            <button class="act-btn" onclick="sendAction('sleep')">😴</button>
-            <button class="act-btn" onclick="sendAction('money')">💸</button>
-            <button class="act-btn" onclick="sendAction('shock')">⚡</button>
-            <button class="act-btn" onclick="sendAction('fly')">🚀</button>
+            <button class="act-btn" onclick="setAction('dance')">💃</button>
+            <button class="act-btn" onclick="setAction('flip')">🌀</button>
+            <button class="act-btn" onclick="setAction('fly')">🚀</button>
+            <button class="act-btn" onclick="setAction('ghost')">👻</button>
             <button class="act-btn" style="background:#ff4d4d !important;" onclick="location.reload()">🚪</button>
         </div>
         <canvas id="gameCanvas"></canvas>
@@ -76,208 +76,180 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
     <script>
-        // --- FIREBASE CONFIG ---
+        // --- Firebase Configuration ---
         const firebaseConfig = {
             apiKey: "AIzaSyCZOjVeUg4cPILA5eMSGbDURN8qMvCbZJQ",
             authDomain: "satoru-hub-9806d.firebaseapp.com",
             projectId: "satoru-hub-9806d",
-            databaseURL: "https://satoru-hub-9806d-default-rtdb.firebaseio.com",
             appId: "1:340283464699:web:c9b3c09ce029d4dd6b895e"
         };
         firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.database();
 
-        // --- GAME VARIABLES ---
+        async function loginWithGoogle() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            try {
+                const result = await firebase.auth().signInWithPopup(provider);
+                const user = result.user;
+                
+                // وەرگرتنی ناو و وێنە لە گوگڵەوە
+                document.getElementById('user-name').value = user.displayName;
+                userAvatar.crossOrigin = "anonymous";
+                userAvatar.src = user.photoURL;
+                hasAvatar = true;
+                
+                // یەکسەر دەچێتە ژوورەوە
+                enterRoom();
+            } catch (error) {
+                console.error("Login failed:", error);
+                alert("کێشەیەک لە لۆگین دروست بوو");
+            }
+        }
+
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        let localId = null;
-        let isSignUp = false;
-        let currentRoom = "Lobby";
-        let myPlayer = { x: 0, y: 0, tx: 0, ty: 0, name: "", avatar: null, action: null, chat: "", chatT: 0, scaleX: 1 };
-        let players = {};
-        let remoteAvatars = {};
-        let particles = [];
-        let cropper;
-
-        // Assets
-        const charImg = new Image(); charImg.src = 'char.png';
-        const lobbyBg = new Image(); lobbyBg.src = 'room1.jpg';
-        const vipBg = new Image(); vipBg.src = 'vip.jpg';
+        let player = { x: 0, y: 0, tx: 0, ty: 0, name: "Ibrahim", scaleX: 1 };
+        
+        let userAvatar = new Image();
+        const charImg = new Image(); charImg.src = 'char.png'; 
+        const bgImg = new Image(); bgImg.src = 'room1.jpg';
         const bubbleImg = new Image(); bubbleImg.src = 'ChatBubble.png';
-        const moneyImg = new Image(); moneyImg.src = 'money.png';
-        const sleepImg = new Image(); sleepImg.src = 'sleep.png';
+        const heartImg = new Image(); heartImg.src = 'heart.png'; 
 
-        // --- AUTH FUNCTIONS ---
-        function toggleMode() {
-            isSignUp = !isSignUp;
-            document.getElementById('signup-only').style.display = isSignUp ? 'block' : 'none';
-            document.getElementById('mode-text').innerText = isSignUp ? "Already have an account? Sign In" : "Don't have an account? Sign Up";
-        }
+        let hasAvatar = false, inGame = false, cropper;
+        let action = null, timer = 0, chatMessage = "", chatTimer = 0;
+        let hearts = []; 
 
-        async function handleAuth() {
-            const user = document.getElementById('auth-user').value.trim();
-            const pass = document.getElementById('auth-pass').value;
-            if(!user || pass.length < 6) return alert("ناو بنووسە و پاسۆرد نابێت لە ٦ پیت کەمتر بێت");
-            
-            const email = user.includes('@') ? user : user + "@hub.com";
-            try {
-                let res;
-                if(isSignUp) res = await auth.createUserWithEmailAndPassword(email, pass);
-                else res = await auth.signInWithEmailAndPassword(email, pass);
-                
-                localId = res.user.uid;
-                myPlayer.name = user;
-                enterRoom();
-            } catch(e) { alert(e.message); }
-        }
-
-        async function socialLogin(type) {
-            const provider = type === 'google' ? new firebase.auth.GoogleAuthProvider() : new firebase.auth.OAuthProvider('apple.com');
-            try {
-                const res = await auth.signInWithPopup(provider);
-                localId = res.user.uid;
-                myPlayer.name = res.user.displayName;
-                myPlayer.avatar = res.user.photoURL;
-                enterRoom();
-            } catch(e) { alert(e.message); }
-        }
-
-        // --- CROPPER ---
-        document.getElementById('avatar-upload').onchange = (e) => {
+        document.getElementById('avatar-upload').onchange = function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
             const reader = new FileReader();
-            reader.onload = (ev) => {
-                document.getElementById('crop-image').src = ev.target.result;
+            reader.onload = function(event) {
+                const imgElement = document.getElementById('crop-image');
+                imgElement.src = event.target.result;
                 document.getElementById('crop-modal').style.display = 'flex';
-                if(cropper) cropper.destroy();
-                cropper = new Cropper(document.getElementById('crop-image'), { aspectRatio: 1 });
+                if (cropper) cropper.destroy();
+                cropper = new Cropper(imgElement, { aspectRatio: 1, viewMode: 1, autoCropArea: 1 });
             };
-            reader.readAsDataURL(e.target.files[0]);
+            reader.readAsDataURL(file);
         };
+
         function applyCrop() {
-            myPlayer.avatar = cropper.getCroppedCanvas({width:60, height:60}).toDataURL("image/webp", 0.6);
-            document.getElementById('crop-modal').style.display = 'none';
+            userAvatar.src = cropper.getCroppedCanvas({ width: 200, height: 200 }).toDataURL();
+            hasAvatar = true; closeCrop();
         }
-
-        // --- GAME ENGINE ---
-        function enterRoom() {
-            document.getElementById('main-ui').style.display = 'none';
-            document.getElementById('game-ui').style.display = 'block';
-            
-            myPlayer.x = canvas.width/2; myPlayer.y = canvas.height*0.8;
-            myPlayer.tx = myPlayer.x; myPlayer.ty = myPlayer.y;
-
-            // Connect to Firebase Room
-            const roomRef = db.ref(`rooms/${currentRoom}/${localId}`);
-            roomRef.onDisconnect().remove();
-            
-            db.ref(`rooms/${currentRoom}`).on('value', (s) => {
-                players = s.val() || {};
-            });
-
-            requestAnimationFrame(gameLoop);
-        }
-
-        function sync() {
-            if(!localId) return;
-            db.ref(`rooms/${currentRoom}/${localId}`).set(myPlayer);
-        }
-
-        function sendAction(act) {
-            myPlayer.action = act;
-            sync();
-            setTimeout(() => { myPlayer.action = null; sync(); }, 4000);
-        }
-
-        function gameLoop() {
-            // Movement
-            myPlayer.x += (myPlayer.tx - myPlayer.x) * 0.1;
-            myPlayer.y += (myPlayer.ty - myPlayer.y) * 0.1;
-            if(Math.abs(myPlayer.tx - myPlayer.x) > 0.5) sync();
-
-            // Room Logic
-            if(myPlayer.x > canvas.width - 30 && currentRoom === "Lobby") switchRoom("VIP Room");
-            else if(myPlayer.x < 30 && currentRoom === "VIP Room") switchRoom("Lobby");
-
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            const bg = currentRoom === "Lobby" ? lobbyBg : vipBg;
-            if(bg.complete) ctx.drawImage(bg, 0, 0, canvas.width, canvas.height);
-
-            // Money Particles
-            particles.forEach((p, i) => {
-                ctx.globalAlpha = p.o;
-                if(moneyImg.complete) ctx.drawImage(moneyImg, p.x, p.y, 25, 25);
-                p.y -= 3; p.o -= 0.02;
-                if(p.o <= 0) particles.splice(i, 1);
-            });
-            ctx.globalAlpha = 1;
-
-            // Draw Players
-            Object.keys(players).forEach(id => {
-                const p = players[id];
-                
-                // Chat
-                if(p.chat && p.chatT > 0 && bubbleImg.complete) {
-                    ctx.drawImage(bubbleImg, p.x - 70, p.y - 230, 180, 90);
-                    ctx.fillStyle = "black"; ctx.textAlign = "center"; ctx.font = "bold 12px Arial";
-                    ctx.fillText(p.chat, p.x + 20, p.y - 180);
-                    if(id === localId) { myPlayer.chatT--; if(myPlayer.chatT <= 0) { myPlayer.chat = ""; sync(); } }
-                }
-
-                ctx.save();
-                ctx.translate(p.x, p.y);
-                
-                let jump = 0, rot = 0;
-                if(p.action === 'dance') jump = Math.sin(Date.now()*0.02)*15;
-                if(p.action === 'money' && Math.random() < 0.1) particles.push({x:p.x, y:p.y-100, o:1});
-                if(p.action === 'sleep') { rot = Math.PI/2; jump = 40; if(sleepImg.complete) ctx.drawImage(sleepImg, 0, -200, 40, 40); }
-                if(p.action === 'fly') jump = -80;
-
-                ctx.translate(0, jump); ctx.rotate(rot);
-                ctx.fillStyle = "white"; ctx.font = "bold 14px Arial"; ctx.textAlign = "center";
-                ctx.fillText(p.name, 0, -140);
-
-                ctx.scale(p.scaleX, 1);
-                if(charImg.complete) ctx.drawImage(charImg, -75, -150, 150, 150);
-                
-                if(p.avatar) {
-                    if(!remoteAvatars[p.avatar]) { remoteAvatars[p.avatar] = new Image(); remoteAvatars[p.avatar].src = p.avatar; }
-                    if(remoteAvatars[p.avatar].complete) ctx.drawImage(remoteAvatars[p.avatar], -25, -115, 50, 50);
-                }
-                ctx.restore();
-            });
-
-            requestAnimationFrame(gameLoop);
-        }
-
-        function switchRoom(newRoom) {
-            db.ref(`rooms/${currentRoom}/${localId}`).remove();
-            currentRoom = newRoom;
-            myPlayer.x = newRoom === "VIP Room" ? 60 : canvas.width - 60;
-            myPlayer.tx = myPlayer.x;
-            document.getElementById('room-tag').innerText = newRoom;
-            enterRoom();
-        }
-
-        // Input
-        window.onmousedown = (e) => {
-            if(document.getElementById('game-ui').style.display === 'none') return;
-            if(e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT') return;
-            myPlayer.tx = e.clientX;
-            myPlayer.ty = Math.max(canvas.height*0.5, Math.min(canvas.height*0.9, e.clientY));
-            myPlayer.scaleX = myPlayer.tx > myPlayer.x ? 1 : -1;
-            sync();
-        };
-
-        document.getElementById('chat-input').onkeypress = function(e) {
-            if(e.key === 'Enter' && this.value.trim() !== "") {
-                myPlayer.chat = this.value; myPlayer.chatT = 180;
-                this.value = ""; this.blur(); sync();
-            }
-        };
+        function closeCrop() { document.getElementById('crop-modal').style.display = 'none'; }
 
         function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
         window.onresize = resize; resize();
+
+        function enterRoom() {
+            document.getElementById('main-ui').style.display = 'none';
+            document.getElementById('game-ui').style.display = 'block';
+            inGame = true; 
+            player.name = document.getElementById('user-name').value;
+            player.x = canvas.width/2; player.y = canvas.height*0.8; 
+            player.tx = player.x; player.ty = player.y;
+            loop();
+        }
+
+        function setAction(type) { action = type; timer = 120; }
+
+        function spawnHearts() {
+            if (action === 'dance' && Math.random() < 0.15) {
+                hearts.push({
+                    x: player.x + (Math.random() - 0.5) * 60,
+                    y: player.y - 100,
+                    size: 20 + Math.random() * 10,
+                    speedY: 1 + Math.random() * 2,
+                    opacity: 1
+                });
+            }
+        }
+
+        function drawHearts() {
+            hearts.forEach((h, index) => {
+                ctx.save(); ctx.globalAlpha = h.opacity;
+                if(heartImg.complete) ctx.drawImage(heartImg, h.x - h.size/2, h.y - h.size/2, h.size, h.size);
+                ctx.restore();
+                h.y -= h.speedY; h.opacity -= 0.015;
+                if (h.opacity <= 0) hearts.splice(index, 1);
+            });
+        }
+
+        function drawChatBubble(x, y, text) {
+            if (!text || chatTimer <= 0 || !bubbleImg.complete) return;
+            ctx.save();
+            let bW = 215, bH = 107, bX = x - (bW/2) + 28, bY = y - 220;
+            ctx.drawImage(bubbleImg, bX, bY, bW, bH);
+            ctx.fillStyle = "black"; ctx.textAlign = "center"; ctx.font = "bold 14px Arial";
+            ctx.fillText(text, bX + (bW/2), bY + 55);
+            ctx.restore();
+        }
+
+        function loop() {
+            if(!inGame) return;
+            player.x += (player.tx - player.x) * 0.1; player.y += (player.ty - player.y) * 0.1;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if(bgImg.complete) ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
+            
+            ctx.fillStyle = "rgba(0, 0, 0, 0.3)"; 
+            ctx.beginPath(); 
+            ctx.ellipse(player.x, player.y - 22, 40, 15, 0, 0, Math.PI*2); 
+            ctx.fill();
+
+            drawChatBubble(player.x, player.y, chatMessage);
+            if (chatTimer > 0) chatTimer--;
+            spawnHearts(); drawHearts();
+
+            ctx.save();
+            ctx.translate(player.x, player.y);
+            let pSize = 160;
+            let dS = (action === 'dance') ? 1 + Math.sin(Date.now() * 0.015) * 0.1 : 1;
+
+            ctx.save();
+            ctx.scale(dS, dS);
+            ctx.fillStyle = "white"; ctx.textAlign = "center"; ctx.font = "bold 15px Arial";
+            ctx.shadowBlur = 5; ctx.shadowColor = "black";
+            ctx.fillText(player.name, 0, -128); 
+            ctx.restore();
+
+            ctx.save();
+            if (action === 'fly') ctx.translate(0, -Math.abs(Math.sin(Date.now() * 0.01)) * 50);
+            if (action === 'flip' && timer > 0) ctx.rotate((120 - timer) * (Math.PI * 2 / 40));
+            ctx.scale(player.scaleX * dS, dS);
+            if (action === 'ghost') ctx.globalAlpha = 0.5;
+            ctx.shadowBlur = 20; ctx.shadowColor = "#5d34a5";
+            if(charImg.complete) ctx.drawImage(charImg, -pSize/2, -pSize, pSize, pSize);
+            
+            // Draw Avatar
+            if (hasAvatar && userAvatar.complete) {
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(0, -120, 27, 0, Math.PI * 2);
+                ctx.clip();
+                ctx.drawImage(userAvatar, -27, -147, 54, 54);
+                ctx.restore();
+            }
+            ctx.restore();
+
+            ctx.restore(); 
+
+            if (timer > 0) timer--; else action = null;
+            requestAnimationFrame(loop);
+        }
+
+        document.getElementById('chat-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && this.value.trim() !== "") {
+                chatMessage = this.value; chatTimer = 180; this.value = ""; this.blur();
+            }
+        });
+
+        window.addEventListener('mousedown', (e) => { 
+            if(!inGame || e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON') return; 
+            player.tx = e.clientX; 
+            player.ty = Math.max(canvas.height*0.5, Math.min(canvas.height*0.95, e.clientY)); 
+            player.scaleX = (player.tx > player.x) ? 1 : -1; 
+        });
     </script>
 </body>
 </html>
