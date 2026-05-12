@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Satoru Hub - Multiplayer & Money ✨</title>
+    <title>Satoru Hub - Square Avatar ✨</title>
     
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
     <style>
         body { margin: 0; background: #050505; overflow: hidden; font-family: sans-serif; color: white; touch-action: none; }
         canvas { display: block; width: 100vw; height: 100vh; }
@@ -80,7 +79,6 @@
         let myPlayer = { x: 0, y: 0, tx: 0, ty: 0, name: "Ibrahim", avatar: "", scaleX: 1, action: null, chat: "", chatT: 0 };
         let allPlayers = {};
         
-        let userAvatarImg = new Image();
         const charImg = new Image(); charImg.src = 'char.png'; 
         const lobbyBg = new Image(); lobbyBg.src = 'room1.jpg';
         const vipBg = new Image(); vipBg.src = 'vip.jpg'; 
@@ -93,13 +91,16 @@
         let inGame = false;
         let particles = [];
 
+        // بۆ هەڵگرتنی وێنەی یاریزانەکان بۆ ئەوەی دووبارە لۆد نەبنەوە
+        const avatarCache = {};
+
         // --- 3. Authentication ---
         async function loginWithGoogle() {
             const provider = new firebase.auth.GoogleAuthProvider();
             try {
                 const result = await auth.signInWithPopup(provider);
                 localId = result.user.uid;
-                myPlayer.name = result.user.displayName;
+                myPlayer.name = result.user.displayName.split(' ')[0];
                 myPlayer.avatar = result.user.photoURL;
                 enterRoom();
             } catch (e) { alert("کێشە لە لۆگین هەیە"); }
@@ -114,7 +115,6 @@
             myPlayer.x = canvas.width/2; myPlayer.y = canvas.height*0.8;
             myPlayer.tx = myPlayer.x; myPlayer.ty = myPlayer.y;
 
-            // Sync with Firebase
             db.ref('players/' + localId).onDisconnect().remove();
             db.ref('players').on('value', (snap) => {
                 allPlayers = snap.val() || {};
@@ -128,7 +128,7 @@
         }
 
         // --- 4. Logic & Rendering ---
-        function setAction(type) { myPlayer.action = type; setTimeout(() => myPlayer.action = null, 5000); }
+        function setAction(type) { myPlayer.action = type; setTimeout(() => { if(myPlayer.action === type) myPlayer.action = null; }, 5000); }
 
         function spawnMoney(x, y) {
             particles.push({
@@ -149,12 +149,10 @@
         function loop() {
             if(!inGame) return;
 
-            // Update local move
             myPlayer.x += (myPlayer.tx - myPlayer.x) * 0.1;
             myPlayer.y += (myPlayer.ty - myPlayer.y) * 0.1;
             if(myPlayer.chatT > 0) myPlayer.chatT--; else myPlayer.chat = "";
 
-            // Room Switch
             if (myPlayer.x > canvas.width - 40 && currentRoomName === "Lobby") {
                 currentBg = vipBg; currentRoomName = "VIP Room";
                 document.getElementById('room-tag').innerText = "VIP Room 💎";
@@ -168,21 +166,16 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             if(currentBg.complete) ctx.drawImage(currentBg, 0, 0, canvas.width, canvas.height);
 
-            // Draw Particles
             particles.forEach((p, index) => {
-                ctx.save();
-                ctx.globalAlpha = p.opacity;
-                ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+                ctx.save(); ctx.globalAlpha = p.opacity; ctx.translate(p.x, p.y); ctx.rotate(p.rot);
                 if(moneyImg.complete) ctx.drawImage(moneyImg, -p.size/2, -p.size/2, p.size, p.size);
                 ctx.restore();
                 p.y -= p.speedY; p.x += p.vx; p.rot += p.rotV; p.opacity -= 0.012;
                 if (p.opacity <= 0) particles.splice(index, 1);
             });
 
-            // Draw All Players
             Object.keys(allPlayers).forEach(id => {
-                const p = allPlayers[id];
-                drawPlayer(p);
+                drawPlayer(allPlayers[id]);
             });
 
             requestAnimationFrame(loop);
@@ -192,11 +185,11 @@
             ctx.save();
             ctx.translate(p.x, p.y);
             
-            // Shadow
+            // سێبەر
             ctx.fillStyle = "rgba(0,0,0,0.2)";
             ctx.beginPath(); ctx.ellipse(0, -22, 40, 15, 0, 0, Math.PI*2); ctx.fill();
 
-            // Chat
+            // چات
             if (p.chat && bubbleImg.complete) {
                 ctx.drawImage(bubbleImg, -80, -240, 215, 107);
                 ctx.fillStyle = "black"; ctx.textAlign = "center"; ctx.font = "bold 14px Arial";
@@ -207,29 +200,31 @@
             if (p.action === 'dance') jump = Math.sin(Date.now() * 0.015) * 15;
             if (p.action === 'money') { if(Math.random() < 0.2) spawnMoney(p.x, p.y); }
             if (p.action === 'fly') jump = -Math.abs(Math.sin(Date.now() * 0.01)) * 80;
-            if (p.action === 'sleep') { 
-                rot = Math.PI / 2; jump = 50;
-                if(sleepImg.complete) ctx.drawImage(sleepImg, -30, -220, 60, 60);
-            }
+            if (p.action === 'sleep') { rot = Math.PI / 2; jump = 50; if(sleepImg.complete) ctx.drawImage(sleepImg, -30, -220, 60, 60); }
 
             ctx.translate(0, jump);
             ctx.rotate(rot);
 
-            // Name
+            // ناو
             ctx.fillStyle = "white"; ctx.textAlign = "center"; ctx.font = "bold 15px Arial";
             ctx.fillText(p.name, 0, -135);
 
-            // Body
+            // جەستە
             ctx.scale(p.scaleX, 1);
             if(charImg.complete) ctx.drawImage(charImg, -80, -160, 160, 160);
             
-            // Avatar (Google Photo)
+            // --- کێشانی وێنەی ئاڤاتار بە چوارگۆشەیی ---
             if(p.avatar) {
-                let av = new Image(); av.src = p.avatar;
-                ctx.save();
-                ctx.beginPath(); ctx.arc(0, -120, 27, 0, Math.PI*2); ctx.clip();
-                if(av.complete) ctx.drawImage(av, -27, -147, 54, 54);
-                ctx.restore();
+                if(!avatarCache[p.avatar]) {
+                    avatarCache[p.avatar] = new Image();
+                    avatarCache[p.avatar].src = p.avatar;
+                    avatarCache[p.avatar].crossOrigin = "anonymous";
+                }
+                const av = avatarCache[p.avatar];
+                if(av.complete) {
+                    // لێرەدا وێنەکە بە چوارگۆشەیی دەکێشین ڕێک لە ناو سنگی کارەکتەرەکە
+                    ctx.drawImage(av, -27, -118, 54, 54); 
+                }
             }
 
             ctx.restore();
