@@ -3,9 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Satoru Hub - All Animations ✨</title>
+    <title>Satoru Hub - Multiplayer ✨</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
     
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
     <style>
         :root {
             --primary: #8a4fff;
@@ -24,7 +27,6 @@
 
         canvas { display: block; width: 100%; height: 100%; touch-action: none; }
 
-        /* UI Login */
         #main-ui { 
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
             text-align: center; background: var(--glass); padding: 30px; border-radius: 30px; 
@@ -44,13 +46,11 @@
             border: 1px solid #333; color: white; border-radius: 12px; text-align: center; font-size: 16px;
         }
 
-        /* Crop Modal */
         #crop-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 2000; flex-direction: column; align-items: center; justify-content: center; }
         .crop-container { width: 90%; max-width: 400px; background: #111; border-radius: 15px; overflow: hidden; }
         .crop-controls { margin-top: 20px; display: flex; gap: 15px; }
         .crop-btn { background: var(--primary); color: white; border: none; padding: 12px 25px; border-radius: 10px; font-weight: bold; }
 
-        /* Game UI */
         #game-ui { display: none; position: relative; width: 100vw; height: 100vh; }
         #chat-input { 
             position: absolute; bottom: calc(110px + env(safe-area-inset-bottom)); 
@@ -102,11 +102,23 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
     <script>
+        // Firebase Config
+        const firebaseConfig = {
+            apiKey: "AIzaSyCZOjVeUg4cPILA5eMSGbDURN8qMvCbZJQ",
+            authDomain: "satoru-hub-9806d.firebaseapp.com",
+            projectId: "satoru-hub-9806d",
+            databaseURL: "https://satoru-hub-9806d-default-rtdb.firebaseio.com",
+            appId: "1:340283464699:web:c9b3c09ce029d4dd6b895e"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        let player = { x: 0, y: 0, tx: 0, ty: 0, name: "Ibrahim", scaleX: 1, action: null, timer: 0, chat: "", chatT: 0 };
+        let localId = "user_" + Math.floor(Math.random()*999999);
+        let myPlayer = { x: 0, y: 0, tx: 0, ty: 0, name: "Ibrahim", avatar: "", scaleX: 1, action: null, chat: "", chatT: 0, room: "Lobby" };
+        let allPlayers = {};
         
-        let userAvatar = new Image();
         const charImg = new Image(); charImg.src = 'char.png'; 
         const lobbyBg = new Image(); lobbyBg.src = 'room1.jpg';
         const vipBg = new Image(); vipBg.src = 'vip.jpg'; 
@@ -114,9 +126,7 @@
         const sleepImg = new Image(); sleepImg.src = 'sleep.png';
         const moneyImg = new Image(); moneyImg.src = 'money.png'; 
 
-        let currentBg = lobbyBg;
-        let currentRoomName = "Lobby";
-        let hasAvatar = false, inGame = false, cropper;
+        let inGame = false, cropper;
         let particles = []; 
 
         document.getElementById('avatar-upload').onchange = function(e) {
@@ -134,8 +144,8 @@
         };
 
         function applyCrop() {
-            userAvatar.src = cropper.getCroppedCanvas({ width: 150, height: 150 }).toDataURL();
-            hasAvatar = true; closeCrop();
+            myPlayer.avatar = cropper.getCroppedCanvas({ width: 100, height: 100 }).toDataURL();
+            closeCrop();
         }
         function closeCrop() { document.getElementById('crop-modal').style.display = 'none'; }
 
@@ -145,47 +155,59 @@
         function enterRoom() {
             document.getElementById('main-ui').style.display = 'none';
             document.getElementById('game-ui').style.display = 'block';
-            inGame = true; player.name = document.getElementById('user-name').value;
-            player.x = canvas.width/2; player.y = canvas.height*0.8; player.tx = player.x; player.ty = player.y;
+            inGame = true;
+            myPlayer.name = document.getElementById('user-name').value;
+            myPlayer.x = canvas.width/2; myPlayer.y = canvas.height*0.8;
+            myPlayer.tx = myPlayer.x; myPlayer.ty = myPlayer.y;
+
+            // Firebase Online System
+            db.ref('players/' + localId).onDisconnect().remove();
+            db.ref('players').on('value', (snap) => {
+                allPlayers = snap.val() || {};
+            });
+
+            setInterval(() => {
+                if(inGame) db.ref('players/' + localId).set(myPlayer);
+            }, 50);
+
             loop();
         }
 
-        function setAction(type) { player.action = type; player.timer = 180; }
+        function setAction(type) { 
+            myPlayer.action = type; 
+            setTimeout(() => { if(myPlayer.action === type) myPlayer.action = null; }, 4000); 
+        }
 
-        function spawnParticle(type) {
+        function spawnParticle(p, type) {
             particles.push({
-                x: player.x + (Math.random() - 0.5) * 60,
-                y: player.y - 120,
+                x: p.x + (Math.random() - 0.5) * 60,
+                y: p.y - 120,
                 size: type === 'heart' ? 22 + Math.random()*10 : 25 + Math.random()*20,
                 speedY: 2 + Math.random() * 2,
-                opacity: 1,
-                vx: (Math.random() - 0.5) * 4,
-                type: type,
-                rot: Math.random() * Math.PI,
-                text: type === 'heart' ? '❤️' : null
+                opacity: 1, vx: (Math.random() - 0.5) * 4, type: type,
+                rot: Math.random() * Math.PI, text: type === 'heart' ? '❤️' : null
             });
         }
 
         function loop() {
             if(!inGame) return;
 
-            // Room Logic
-            if (player.x > canvas.width - 40 && currentRoomName === "Lobby") {
-                currentBg = vipBg; currentRoomName = "VIP Room";
-                document.getElementById('room-tag').innerText = "VIP ROOM 💎";
-                player.x = 60; player.tx = 60;
-            } else if (player.x < 40 && currentRoomName === "VIP Room") {
-                currentBg = lobbyBg; currentRoomName = "Lobby";
-                document.getElementById('room-tag').innerText = "LOBBY";
-                player.x = canvas.width - 60; player.tx = canvas.width - 60;
+            // Room logic
+            if (myPlayer.x > canvas.width - 40 && myPlayer.room === "Lobby") {
+                myPlayer.room = "VIP Room"; document.getElementById('room-tag').innerText = "VIP ROOM 💎";
+                myPlayer.x = 60; myPlayer.tx = 60;
+            } else if (myPlayer.x < 40 && myPlayer.room === "VIP Room") {
+                myPlayer.room = "Lobby"; document.getElementById('room-tag').innerText = "LOBBY";
+                myPlayer.x = canvas.width - 60; myPlayer.tx = canvas.width - 60;
             }
 
-            player.x += (player.tx - player.x) * 0.1;
-            player.y += (player.ty - player.y) * 0.1;
-            if(player.chatT > 0) player.chatT--; else player.chat = "";
+            myPlayer.x += (myPlayer.tx - myPlayer.x) * 0.1;
+            myPlayer.y += (myPlayer.ty - myPlayer.y) * 0.1;
+            if(myPlayer.chatT > 0) myPlayer.chatT--; else myPlayer.chat = "";
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            if(currentBg.complete) ctx.drawImage(currentBg, 0, 0, canvas.width, canvas.height);
+            let bg = (myPlayer.room === "Lobby") ? lobbyBg : vipBg;
+            if(bg.complete) ctx.drawImage(bg, 0, 0, canvas.width, canvas.height);
             
             // Particles
             particles.forEach((p, index) => {
@@ -203,63 +225,61 @@
                 if (p.opacity <= 0) particles.splice(index, 1);
             });
 
-            drawPlayer();
-            if (player.timer > 0) player.timer--; else player.action = null;
+            // Draw everyone
+            Object.keys(allPlayers).forEach(id => {
+                if(allPlayers[id].room === myPlayer.room) drawPlayer(allPlayers[id]);
+            });
+
             requestAnimationFrame(loop);
         }
 
-        function drawPlayer() {
+        function drawPlayer(p) {
             ctx.save();
-            ctx.translate(player.x, player.y);
+            ctx.translate(p.x, p.y);
             
-            // Shadow
             ctx.fillStyle = "rgba(0,0,0,0.3)";
             ctx.beginPath(); ctx.ellipse(0, -20, 40, 15, 0, 0, Math.PI*2); ctx.fill();
 
-            // Chat
-            if (player.chat && bubbleImg.complete) {
+            if (p.chat && bubbleImg.complete) {
                 ctx.drawImage(bubbleImg, -85, -240, 200, 100);
                 ctx.fillStyle = "black"; ctx.textAlign = "center"; ctx.font = "bold 14px Arial";
-                ctx.fillText(player.chat, 15, -185);
+                ctx.fillText(p.chat, 15, -185);
             }
 
-            let jump = 0, rot = 0, sc = 1, shake = 0;
-            
-            if (player.action === 'dance') jump = Math.sin(Date.now() * 0.015) * 15;
-            if (player.action === 'money' && Math.random() < 0.2) spawnParticle('money');
-            if (player.action === 'heart' && Math.random() < 0.2) spawnParticle('heart');
-            if (player.action === 'fly') jump = -Math.abs(Math.sin(Date.now() * 0.01)) * 100;
-            if (player.action === 'shock') shake = (Math.random() - 0.5) * 10;
-            if (player.action === 'sleep') {
-                rot = Math.PI / 2; jump = 50;
-                if(sleepImg.complete) ctx.drawImage(sleepImg, -30, -220, 60, 60);
-            }
+            let jump = 0, rot = 0, shake = 0;
+            if (p.action === 'dance') jump = Math.sin(Date.now() * 0.015) * 15;
+            if (p.action === 'money' && Math.random() < 0.1) spawnParticle(p, 'money');
+            if (p.action === 'heart' && Math.random() < 0.1) spawnParticle(p, 'heart');
+            if (p.action === 'fly') jump = -Math.abs(Math.sin(Date.now() * 0.01)) * 100;
+            if (p.action === 'shock') shake = (Math.random() - 0.5) * 10;
+            if (p.action === 'sleep') { rot = Math.PI/2; jump = 50; if(sleepImg.complete) ctx.drawImage(sleepImg, -30, -220, 60, 60); }
 
             ctx.translate(shake, jump);
             ctx.rotate(rot);
 
-            // Name
             ctx.fillStyle = "white"; ctx.textAlign = "center"; ctx.font = "bold 15px sans-serif";
-            ctx.fillText(player.name, 0, -135);
+            ctx.fillText(p.name, 0, -135);
 
-            ctx.scale(player.scaleX, 1);
+            ctx.scale(p.scaleX, 1);
             if(charImg.complete) ctx.drawImage(charImg, -80, -160, 160, 160);
             
-            if(hasAvatar && userAvatar.complete) {
-                ctx.save();
-                ctx.beginPath(); ctx.arc(0, -120, 26, 0, Math.PI*2); ctx.clip();
-                ctx.drawImage(userAvatar, -26, -146, 52, 52);
-                ctx.restore();
+            // --- وێنەی چوارگۆشە ---
+            if(p.avatar) {
+                let av = new Image(); av.src = p.avatar;
+                if(av.complete) {
+                    ctx.strokeStyle = "white"; ctx.lineWidth = 2;
+                    ctx.strokeRect(-27, -147, 54, 54); // هێڵی دەوری چوارگۆشەکە
+                    ctx.drawImage(av, -27, -147, 54, 54); // وێنە چوارگۆشەکە
+                }
             }
             ctx.restore();
         }
 
-        // iPhone Inputs
         function handleInput(clientX, clientY, target) {
             if(!inGame || target.tagName === 'INPUT' || target.closest('button')) return; 
-            player.tx = clientX; 
-            player.ty = Math.max(canvas.height*0.45, Math.min(canvas.height*0.95, clientY)); 
-            player.scaleX = (player.tx > player.x) ? 1 : -1; 
+            myPlayer.tx = clientX; 
+            myPlayer.ty = Math.max(canvas.height*0.45, Math.min(canvas.height*0.95, clientY)); 
+            myPlayer.scaleX = (myPlayer.tx > myPlayer.x) ? 1 : -1; 
         }
 
         window.addEventListener('mousedown', (e) => handleInput(e.clientX, e.clientY, e.target));
@@ -269,15 +289,9 @@
             if (inGame && e.target.tagName === 'CANVAS') e.preventDefault();
         }, { passive: false });
 
-        window.addEventListener('touchmove', (e) => {
-            const touch = e.touches[0];
-            handleInput(touch.clientX, touch.clientY, e.target);
-            if (inGame && e.target.tagName === 'CANVAS') e.preventDefault();
-        }, { passive: false });
-
         document.getElementById('chat-input').addEventListener('keypress', function(e) {
             if (e.key === 'Enter' && this.value.trim() !== "") {
-                player.chat = this.value; player.chatT = 180;
+                myPlayer.chat = this.value; myPlayer.chatT = 180;
                 this.value = ""; this.blur();
             }
         });
