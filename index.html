@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Satoru Hub - Heart & Luxury ✨</title>
+    <title>Satoru Hub - All Animations ✨</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
     
     <style>
@@ -94,8 +94,8 @@
             <button class="act-btn" onclick="setAction('sleep')">💤</button>
             <button class="act-btn" onclick="setAction('money')">💰</button>
             <button class="act-btn" onclick="setAction('heart')">❤️</button>
+            <button class="act-btn" onclick="setAction('shock')">⚡</button>
             <button class="act-btn" onclick="setAction('fly')">🚀</button>
-            <button class="act-btn" style="background: rgba(255, 77, 77, 0.2); border-color: #ff4d4d;" onclick="location.reload()">🚪</button>
         </div>
         <canvas id="gameCanvas"></canvas>
     </div>
@@ -119,7 +119,6 @@
         let hasAvatar = false, inGame = false, cropper;
         let particles = []; 
 
-        // --- سیستەمی بڕینی وێنە ---
         document.getElementById('avatar-upload').onchange = function(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -153,17 +152,16 @@
 
         function setAction(type) { player.action = type; player.timer = 180; }
 
-        // --- دروستکردنی پارە و دڵ ---
         function spawnParticle(type) {
             particles.push({
-                x: player.x + (Math.random() - 0.5) * 50,
+                x: player.x + (Math.random() - 0.5) * 60,
                 y: player.y - 120,
                 size: type === 'heart' ? 22 + Math.random()*10 : 25 + Math.random()*20,
-                speedY: 1.5 + Math.random() * 2,
+                speedY: 2 + Math.random() * 2,
                 opacity: 1,
-                vx: (Math.random() - 0.5) * 3,
+                vx: (Math.random() - 0.5) * 4,
                 type: type,
-                rot: Math.random() * 0.5,
+                rot: Math.random() * Math.PI,
                 text: type === 'heart' ? '❤️' : null
             });
         }
@@ -171,7 +169,7 @@
         function loop() {
             if(!inGame) return;
 
-            // گۆڕینی ژوور
+            // Room Logic
             if (player.x > canvas.width - 40 && currentRoomName === "Lobby") {
                 currentBg = vipBg; currentRoomName = "VIP Room";
                 document.getElementById('room-tag').innerText = "VIP ROOM 💎";
@@ -189,11 +187,7 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             if(currentBg.complete) ctx.drawImage(currentBg, 0, 0, canvas.width, canvas.height);
             
-            // سێبەر
-            ctx.fillStyle = "rgba(0,0,0,0.3)";
-            ctx.beginPath(); ctx.ellipse(player.x, player.y - 20, 40, 15, 0, 0, Math.PI*2); ctx.fill();
-
-            // ڕێندەرکردنی ئەنیمەیشنەکان
+            // Particles
             particles.forEach((p, index) => {
                 ctx.save();
                 ctx.globalAlpha = p.opacity;
@@ -209,13 +203,6 @@
                 if (p.opacity <= 0) particles.splice(index, 1);
             });
 
-            // چات
-            if (player.chat && bubbleImg.complete) {
-                ctx.drawImage(bubbleImg, player.x - 85, player.y - 240, 200, 100);
-                ctx.fillStyle = "black"; ctx.textAlign = "center"; ctx.font = "bold 14px Arial";
-                ctx.fillText(player.chat, player.x + 15, player.y - 185);
-            }
-
             drawPlayer();
             if (player.timer > 0) player.timer--; else player.action = null;
             requestAnimationFrame(loop);
@@ -225,16 +212,33 @@
             ctx.save();
             ctx.translate(player.x, player.y);
             
-            let jump = 0, sc = 1;
-            if (player.action === 'dance') jump = Math.sin(Date.now() * 0.015) * 15;
-            if (player.action === 'money' && Math.random() < 0.15) spawnParticle('money');
-            if (player.action === 'heart' && Math.random() < 0.15) spawnParticle('heart');
-            if (player.action === 'fly') jump = -Math.abs(Math.sin(Date.now() * 0.01)) * 80;
-            if (player.action === 'sleep') {
-               if(sleepImg.complete) ctx.drawImage(sleepImg, -30, -220, 60, 60);
+            // Shadow
+            ctx.fillStyle = "rgba(0,0,0,0.3)";
+            ctx.beginPath(); ctx.ellipse(0, -20, 40, 15, 0, 0, Math.PI*2); ctx.fill();
+
+            // Chat
+            if (player.chat && bubbleImg.complete) {
+                ctx.drawImage(bubbleImg, -85, -240, 200, 100);
+                ctx.fillStyle = "black"; ctx.textAlign = "center"; ctx.font = "bold 14px Arial";
+                ctx.fillText(player.chat, 15, -185);
             }
 
-            ctx.translate(0, jump);
+            let jump = 0, rot = 0, sc = 1, shake = 0;
+            
+            if (player.action === 'dance') jump = Math.sin(Date.now() * 0.015) * 15;
+            if (player.action === 'money' && Math.random() < 0.2) spawnParticle('money');
+            if (player.action === 'heart' && Math.random() < 0.2) spawnParticle('heart');
+            if (player.action === 'fly') jump = -Math.abs(Math.sin(Date.now() * 0.01)) * 100;
+            if (player.action === 'shock') shake = (Math.random() - 0.5) * 10;
+            if (player.action === 'sleep') {
+                rot = Math.PI / 2; jump = 50;
+                if(sleepImg.complete) ctx.drawImage(sleepImg, -30, -220, 60, 60);
+            }
+
+            ctx.translate(shake, jump);
+            ctx.rotate(rot);
+
+            // Name
             ctx.fillStyle = "white"; ctx.textAlign = "center"; ctx.font = "bold 15px sans-serif";
             ctx.fillText(player.name, 0, -135);
 
@@ -250,7 +254,7 @@
             ctx.restore();
         }
 
-        // --- کۆنترۆڵی iPhone ---
+        // iPhone Inputs
         function handleInput(clientX, clientY, target) {
             if(!inGame || target.tagName === 'INPUT' || target.closest('button')) return; 
             player.tx = clientX; 
