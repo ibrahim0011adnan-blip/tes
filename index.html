@@ -3,35 +3,98 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Satoru Hub - Perfect Shadow ✨</title>
+    <title>Satoru Hub - Login & Play ✨</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
     <style>
-        body { margin: 0; background: #050505; overflow: hidden; font-family: sans-serif; color: white; touch-action: none; }
+        :root {
+            --primary: #5d34a5;
+            --bg: #050505;
+            --glass: rgba(15, 15, 15, 0.98);
+        }
+
+        body { margin: 0; background: var(--bg); overflow: hidden; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: white; touch-action: none; }
         canvas { display: block; width: 100vw; height: 100vh; }
-        #main-ui { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; background: rgba(15, 15, 15, 0.98); padding: 25px; border-radius: 20px; border: 2px solid #5d34a5; width: 85%; max-width: 360px; z-index: 1000; }
-        .file-input { margin: 15px 0; font-size: 14px; background: #222; padding: 10px; border-radius: 8px; width: 90%; color: #888; }
-        .start-btn { background: #5d34a5; color: white; border: none; padding: 15px; border-radius: 12px; cursor: pointer; width: 100%; font-weight: bold; font-size: 16px; box-shadow: 0 4px 15px rgba(93, 52, 165, 0.4); }
-        #crop-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; flex-direction: column; align-items: center; justify-content: center; }
-        .crop-container { width: 90%; max-width: 400px; max-height: 70vh; background: #111; overflow: hidden; }
-        .crop-controls { margin-top: 20px; display: flex; gap: 10px; }
-        .crop-btn { background: #5d34a5; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; }
+
+        /* Login UI Layout */
+        #main-ui { 
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+            text-align: center; background: var(--glass); padding: 35px; border-radius: 25px; 
+            border: 2px solid var(--primary); width: 85%; max-width: 380px; z-index: 1000;
+            box-shadow: 0 0 30px rgba(93, 52, 165, 0.3);
+        }
+
+        h2 { color: var(--primary); margin: 0 0 20px 0; font-size: 28px; letter-spacing: 2px; }
+
+        .input-group { margin-bottom: 20px; text-align: right; }
+        label { display: block; margin-bottom: 8px; font-size: 14px; color: #aaa; margin-right: 5px; }
+
+        #user-name { 
+            width: 100%; padding: 14px; background: #111; border: 1px solid #333; 
+            color: white; border-radius: 12px; text-align: center; font-size: 16px;
+            transition: 0.3s;
+        }
+        #user-name:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 10px rgba(93, 52, 165, 0.2); }
+
+        .file-input-wrapper {
+            position: relative; margin-bottom: 25px; background: #1a1a1a;
+            border: 2px dashed #333; border-radius: 12px; padding: 15px; cursor: pointer;
+        }
+
+        .start-btn { 
+            background: var(--primary); color: white; border: none; padding: 16px; 
+            border-radius: 15px; cursor: pointer; width: 100%; font-weight: bold; 
+            font-size: 18px; transition: 0.3s; box-shadow: 0 5px 15px rgba(93, 52, 165, 0.4);
+        }
+        .start-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(93, 52, 165, 0.6); }
+
+        /* Crop Modal */
+        #crop-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 2000; flex-direction: column; align-items: center; justify-content: center; }
+        .crop-container { width: 90%; max-width: 400px; max-height: 70vh; background: #111; border-radius: 15px; overflow: hidden; }
+        .crop-controls { margin-top: 20px; display: flex; gap: 15px; }
+        .crop-btn { background: var(--primary); color: white; border: none; padding: 12px 25px; border-radius: 10px; cursor: pointer; font-weight: bold; }
+
+        /* In-Game UI */
         #game-ui { display: none; position: relative; width: 100vw; height: 100vh; }
-        #chat-input { position: absolute; bottom: 100px; right: 20px; width: 250px; padding: 12px; border-radius: 25px; border: 1px solid #5d34a5; background: rgba(0,0,0,0.6); color: white; backdrop-filter: blur(10px); text-align: center; outline: none; font-size: 16px; z-index: 100; }
-        #action-bar { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; z-index: 100; width: 95%; background: rgba(0,0,0,0.7); padding: 10px; border-radius: 20px; backdrop-filter: blur(10px); }
-        .act-btn { padding: 10px 0; background: #222; border: 1px solid #5d34a5; color: white; border-radius: 12px; font-size: 18px; cursor: pointer; text-align: center; }
+        #chat-input { 
+            position: absolute; bottom: 100px; left: 50%; transform: translateX(-50%);
+            width: 80%; max-width: 300px; padding: 12px 20px; border-radius: 30px; 
+            border: 1px solid var(--primary); background: rgba(0,0,0,0.6); color: white; 
+            backdrop-filter: blur(10px); text-align: center; font-size: 16px; z-index: 100;
+        }
+
+        #action-bar { 
+            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); 
+            display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; z-index: 100; 
+            width: 95%; max-width: 450px; background: rgba(0,0,0,0.7); padding: 12px; 
+            border-radius: 20px; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1);
+        }
+        .act-btn { height: 45px; background: #222; border: 1px solid var(--primary); color: white; border-radius: 12px; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+        .act-btn:active { transform: scale(0.9); }
     </style>
 </head>
 <body>
 
     <div id="main-ui">
-        <h2 style="color: #5d34a5; margin-bottom: 5px;">Satoru Hub</h2>
-        <input type="file" id="avatar-upload" class="file-input" accept="image/*">
-        <input type="text" id="user-name" style="width:90%; padding:10px; margin-bottom:10px; background:#111; border:1px solid #333; color:white; border-radius:8px; text-align:center;" value="Ibrahim">
-        <button class="start-btn" onclick="enterRoom()">دەستپێکردن ✨</button>
+        <h2>SATORU HUB</h2>
+        
+        <div class="input-group">
+            <label>ناونیشانی خۆت بنوسە:</label>
+            <input type="text" id="user-name" placeholder="بۆ نمونە: ئیبراهیم" value="Ibrahim">
+        </div>
+
+        <div class="input-group">
+            <label>وێنەیەک هەڵبژێرە:</label>
+            <div class="file-input-wrapper" onclick="document.getElementById('avatar-upload').click()">
+                <span id="file-status" style="color: #666;">کلیک بکە بۆ دیاریکردنی وێنە</span>
+                <input type="file" id="avatar-upload" style="display: none;" accept="image/*">
+            </div>
+        </div>
+
+        <button class="start-btn" onclick="enterRoom()">چوونە ژوورەوە ✨</button>
     </div>
 
     <div id="crop-modal">
-        <div class="crop-container"><img id="crop-image" style="max-width: 100%;"></div>
+        <div class="crop-container"><img id="crop-image"></div>
         <div class="crop-controls">
             <button class="crop-btn" onclick="applyCrop()">✅ تەواو</button>
             <button class="crop-btn" style="background:#444;" onclick="closeCrop()">❌ پاشگەزبونەوە</button>
@@ -45,7 +108,7 @@
             <button class="act-btn" onclick="setAction('flip')">🌀</button>
             <button class="act-btn" onclick="setAction('fly')">🚀</button>
             <button class="act-btn" onclick="setAction('ghost')">👻</button>
-            <button class="act-btn" style="background:#ff4d4d !important;" onclick="location.reload()">🚪</button>
+            <button class="act-btn" style="background:#ff4d4d !important; border:none;" onclick="location.reload()">🚪</button>
         </div>
         <canvas id="gameCanvas"></canvas>
     </div>
@@ -66,9 +129,11 @@
         let action = null, timer = 0, chatMessage = "", chatTimer = 0;
         let hearts = []; 
 
+        // Handle Avatar Selection
         document.getElementById('avatar-upload').onchange = function(e) {
             const file = e.target.files[0];
             if (!file) return;
+            document.getElementById('file-status').innerText = "وێنە هەڵبژێردرا ✅";
             const reader = new FileReader();
             reader.onload = function(event) {
                 const imgElement = document.getElementById('crop-image');
@@ -90,9 +155,15 @@
         window.onresize = resize; resize();
 
         function enterRoom() {
+            const nameInput = document.getElementById('user-name').value;
+            if(nameInput.trim() === "") {
+                alert("تکایە ناوێک بنوسە");
+                return;
+            }
             document.getElementById('main-ui').style.display = 'none';
             document.getElementById('game-ui').style.display = 'block';
-            inGame = true; player.name = document.getElementById('user-name').value;
+            inGame = true; 
+            player.name = nameInput;
             player.x = canvas.width/2; player.y = canvas.height*0.8; player.tx = player.x; player.ty = player.y;
             loop();
         }
@@ -137,7 +208,7 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             if(bgImg.complete) ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
             
-            // سێبەرەکە کرا بە -22 بۆ ئەوەی تەواو بچێتە ناو قاچەکان
+            // Perfect Shadow
             ctx.fillStyle = "rgba(0, 0, 0, 0.3)"; 
             ctx.beginPath(); 
             ctx.ellipse(player.x, player.y - 22, 40, 15, 0, 0, Math.PI*2); 
@@ -152,19 +223,22 @@
             let pSize = 160;
             let dS = (action === 'dance') ? 1 + Math.sin(Date.now() * 0.015) * 0.1 : 1;
 
+            // Draw Name
             ctx.save();
             ctx.scale(dS, dS);
-            ctx.fillStyle = "white"; ctx.textAlign = "center"; ctx.font = "bold 15px Arial";
-            ctx.shadowBlur = 5; ctx.shadowColor = "black";
-            ctx.fillText(player.name, 0, -128); 
+            ctx.fillStyle = "white"; ctx.textAlign = "center"; ctx.font = "bold 16px Arial";
+            ctx.shadowBlur = 8; ctx.shadowColor = "black";
+            ctx.fillText(player.name, 0, -135); 
             ctx.restore();
 
+            // Draw Character and Avatar
             ctx.save();
             if (action === 'fly') ctx.translate(0, -Math.abs(Math.sin(Date.now() * 0.01)) * 50);
             if (action === 'flip' && timer > 0) ctx.rotate((120 - timer) * (Math.PI * 2 / 40));
             ctx.scale(player.scaleX * dS, dS);
             if (action === 'ghost') ctx.globalAlpha = 0.5;
             ctx.shadowBlur = 20; ctx.shadowColor = "#5d34a5";
+            
             if(charImg.complete) ctx.drawImage(charImg, -pSize/2, -pSize, pSize, pSize);
             if (hasAvatar && userAvatar.complete) ctx.drawImage(userAvatar, -(pSize/2.9)/2, -pSize/1.33, pSize/2.9, pSize/2.9);
             ctx.restore();
@@ -182,10 +256,18 @@
         });
 
         window.addEventListener('mousedown', (e) => { 
-            if(!inGame || e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON') return; 
+            if(!inGame || e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON' || e.target.closest('#action-bar')) return; 
             player.tx = e.clientX; 
             player.ty = Math.max(canvas.height*0.5, Math.min(canvas.height*0.95, e.clientY)); 
             player.scaleX = (player.tx > player.x) ? 1 : -1; 
+        });
+
+        window.addEventListener('touchstart', (e) => {
+            if(!inGame || e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON' || e.target.closest('#action-bar')) return;
+            let touch = e.touches[0];
+            player.tx = touch.clientX;
+            player.ty = Math.max(canvas.height*0.5, Math.min(canvas.height*0.95, touch.clientY));
+            player.scaleX = (player.tx > player.x) ? 1 : -1;
         });
     </script>
 </body>
