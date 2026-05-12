@@ -2,79 +2,32 @@
 <html lang="ku" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Satoru Hub - Multiplayer Fix ✨</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Satoru Hub - Money Effect ✨</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
-    
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-
     <style>
-        :root {
-            --primary: #8a4fff;
-            --gold: linear-gradient(135deg, #ffd700, #ffae00);
-            --glass: rgba(15, 15, 15, 0.95);
-            --border: rgba(138, 79, 255, 0.5);
-        }
-
-        * { -webkit-tap-highlight-color: transparent; outline: none; box-sizing: border-box; }
-
-        body { 
-            margin: 0; background: #020205; overflow: hidden; 
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif; 
-            color: white; touch-action: none; position: fixed; width: 100%; height: 100%;
-        }
-
-        canvas { display: block; width: 100%; height: 100%; touch-action: none; }
-
-        #main-ui { 
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
-            text-align: center; background: var(--glass); padding: 30px; border-radius: 30px; 
-            border: 1px solid var(--border); width: 85%; max-width: 360px; z-index: 1000; 
-            backdrop-filter: blur(20px); box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-        }
-
-        .file-input { margin: 15px 0; background: #222; padding: 10px; border-radius: 12px; width: 100%; color: #888; border: 1px solid #333; }
-        
-        .start-btn { 
-            background: var(--gold); color: #332100; border: none; padding: 16px; border-radius: 15px; 
-            cursor: pointer; width: 100%; font-weight: 800; font-size: 16px; text-transform: uppercase;
-        }
-
-        #user-name { 
-            width: 100%; padding: 12px; margin-bottom: 10px; background: rgba(255,255,255,0.05); 
-            border: 1px solid #333; color: white; border-radius: 12px; text-align: center; font-size: 16px;
-        }
-
-        #crop-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 2000; flex-direction: column; align-items: center; justify-content: center; }
-        .crop-container { width: 90%; max-width: 400px; background: #111; border-radius: 15px; overflow: hidden; }
-        .crop-controls { margin-top: 20px; display: flex; gap: 15px; }
-        .crop-btn { background: var(--primary); color: white; border: none; padding: 12px 25px; border-radius: 10px; font-weight: bold; }
-
+        body { margin: 0; background: #050505; overflow: hidden; font-family: sans-serif; color: white; touch-action: none; }
+        canvas { display: block; width: 100vw; height: 100vh; }
+        #main-ui { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; background: rgba(15, 15, 15, 0.98); padding: 25px; border-radius: 20px; border: 2px solid #5d34a5; width: 85%; max-width: 360px; z-index: 1000; }
+        .file-input { margin: 15px 0; font-size: 14px; background: #222; padding: 10px; border-radius: 8px; width: 90%; color: #888; }
+        .start-btn { background: #5d34a5; color: white; border: none; padding: 15px; border-radius: 12px; cursor: pointer; width: 100%; font-weight: bold; font-size: 16px; }
+        #crop-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; flex-direction: column; align-items: center; justify-content: center; }
+        .crop-container { width: 90%; max-width: 400px; max-height: 70vh; background: #111; overflow: hidden; }
+        .crop-controls { margin-top: 20px; display: flex; gap: 10px; }
+        .crop-btn { background: #5d34a5; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; }
         #game-ui { display: none; position: relative; width: 100vw; height: 100vh; }
-        #chat-input { 
-            position: absolute; bottom: calc(110px + env(safe-area-inset-bottom)); 
-            left: 50%; transform: translateX(-50%); width: 80%; max-width: 300px; 
-            padding: 12px 20px; border-radius: 30px; border: 1px solid var(--border); 
-            background: rgba(0,0,0,0.7); color: white; backdrop-filter: blur(15px); text-align: center; font-size: 16px; z-index: 100;
-        }
-
-        #action-bar { 
-            position: absolute; bottom: calc(20px + env(safe-area-inset-bottom)); 
-            left: 50%; transform: translateX(-50%); display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; z-index: 100; 
-            background: var(--glass); padding: 10px; border-radius: 20px; border: 1px solid var(--border); width: 94%; max-width: 420px;
-        }
-
-        .act-btn { height: 45px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 12px; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-        #room-tag { position: absolute; top: calc(20px + env(safe-area-inset-top)); right: 20px; background: var(--gold); color: #332100; padding: 6px 15px; border-radius: 50px; font-weight: 900; font-size: 12px; z-index: 200; }
+        #chat-input { position: absolute; bottom: 100px; right: 20px; width: 250px; padding: 12px; border-radius: 25px; border: 1px solid #5d34a5; background: rgba(0,0,0,0.6); color: white; backdrop-filter: blur(10px); text-align: center; outline: none; font-size: 16px; z-index: 100; }
+        #action-bar { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; z-index: 100; width: 98%; background: rgba(0,0,0,0.7); padding: 10px; border-radius: 20px; backdrop-filter: blur(10px); }
+        .act-btn { padding: 10px 0; background: #222; border: 1px solid #5d34a5; color: white; border-radius: 12px; font-size: 18px; cursor: pointer; text-align: center; }
+        #room-tag { position: absolute; top: 20px; left: 20px; background: rgba(93, 52, 165, 0.4); padding: 5px 15px; border-radius: 15px; font-size: 14px; border: 1px solid #5d34a5; z-index: 200; }
     </style>
 </head>
 <body>
 
     <div id="main-ui">
-        <h2 style="color: #8a4fff; margin-top: 0;">SATORU HUB</h2>
+        <h2 style="color: #5d34a5; margin-bottom: 5px;">Satoru Hub</h2>
         <input type="file" id="avatar-upload" class="file-input" accept="image/*">
-        <input type="text" id="user-name" placeholder="ناوی بەکارهێنەر" value="Ibrahim">
+        <input type="text" id="user-name" style="width:90%; padding:10px; margin-bottom:10px; background:#111; border:1px solid #333; color:white; border-radius:8px; text-align:center;" value="Ibrahim">
         <button class="start-btn" onclick="enterRoom()">دەستپێکردن ✨</button>
     </div>
 
@@ -82,52 +35,42 @@
         <div class="crop-container"><img id="crop-image" style="max-width: 100%;"></div>
         <div class="crop-controls">
             <button class="crop-btn" onclick="applyCrop()">✅ تەواو</button>
-            <button class="crop-btn" style="background:#444;" onclick="closeCrop()">❌ لابردن</button>
+            <button class="crop-btn" style="background:#444;" onclick="closeCrop()">❌ پاشگەزبونەوە</button>
         </div>
     </div>
 
     <div id="game-ui">
-        <div id="room-tag">LOBBY</div>
+        <div id="room-tag">Lobby</div>
         <input type="text" id="chat-input" placeholder="نامەیەک بنوسە...">
         <div id="action-bar">
-            <button class="act-btn" onclick="setAction('dance')">🕺</button>
-            <button class="act-btn" onclick="setAction('sleep')">💤</button>
-            <button class="act-btn" onclick="setAction('money')">💰</button>
-            <button class="act-btn" onclick="setAction('heart')">❤️</button>
+            <button class="act-btn" onclick="setAction('dance')">💃</button>
+            <button class="act-btn" onclick="setAction('sleep')">😴</button>
+            <button class="act-btn" onclick="setAction('money')">💸</button>
             <button class="act-btn" onclick="setAction('shock')">⚡</button>
             <button class="act-btn" onclick="setAction('fly')">🚀</button>
+            <button class="act-btn" style="background:#ff4d4d !important;" onclick="location.reload()">🚪</button>
         </div>
         <canvas id="gameCanvas"></canvas>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyCZOjVeUg4cPILA5eMSGbDURN8qMvCbZJQ",
-            authDomain: "satoru-hub-9806d.firebaseapp.com",
-            projectId: "satoru-hub-9806d",
-            databaseURL: "https://satoru-hub-9806d-default-rtdb.firebaseio.com",
-            appId: "1:340283464699:web:c9b3c09ce029d4dd6b895e"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        let localId = "u_" + Math.floor(Math.random()*99999);
+        let player = { x: 0, y: 0, tx: 0, ty: 0, name: "Ibrahim", scaleX: 1 };
         
-        let myPlayer = { x: 0, y: 0, tx: 0, ty: 0, name: "Ibrahim", avatar: "", scaleX: 1, action: null, chat: "", chatT: 0, room: "Lobby" };
-        let allPlayers = {};
-        let avatarImages = {}; // Cache for images
-
+        let userAvatar = new Image();
         const charImg = new Image(); charImg.src = 'char.png'; 
         const lobbyBg = new Image(); lobbyBg.src = 'room1.jpg';
         const vipBg = new Image(); vipBg.src = 'vip.jpg'; 
         const bubbleImg = new Image(); bubbleImg.src = 'ChatBubble.png';
         const sleepImg = new Image(); sleepImg.src = 'sleep.png';
-        const moneyImg = new Image(); moneyImg.src = 'money.png'; 
+        const moneyImg = new Image(); moneyImg.src = 'money.png'; // وێنەی پارە
 
-        let inGame = false, cropper;
+        let currentBg = lobbyBg;
+        let currentRoomName = "Lobby";
+        let hasAvatar = false, inGame = false, cropper;
+        let action = null, timer = 0, chatMessage = "", chatTimer = 0;
         let particles = []; 
 
         document.getElementById('avatar-upload').onchange = function(e) {
@@ -139,15 +82,14 @@
                 imgElement.src = event.target.result;
                 document.getElementById('crop-modal').style.display = 'flex';
                 if (cropper) cropper.destroy();
-                cropper = new Cropper(imgElement, { aspectRatio: 1, viewMode: 1 });
+                cropper = new Cropper(imgElement, { aspectRatio: 1, viewMode: 1, autoCropArea: 1 });
             };
             reader.readAsDataURL(file);
         };
 
         function applyCrop() {
-            // Compressed for fast multiplayer
-            myPlayer.avatar = cropper.getCroppedCanvas({ width: 64, height: 64 }).toDataURL('image/jpeg', 0.7);
-            closeCrop();
+            userAvatar.src = cropper.getCroppedCanvas({ width: 200, height: 200 }).toDataURL();
+            hasAvatar = true; closeCrop();
         }
         function closeCrop() { document.getElementById('crop-modal').style.display = 'none'; }
 
@@ -157,152 +99,124 @@
         function enterRoom() {
             document.getElementById('main-ui').style.display = 'none';
             document.getElementById('game-ui').style.display = 'block';
-            inGame = true;
-            myPlayer.name = document.getElementById('user-name').value;
-            myPlayer.x = canvas.width/2; myPlayer.y = canvas.height*0.8;
-            myPlayer.tx = myPlayer.x; myPlayer.ty = myPlayer.y;
-
-            const playerRef = db.ref('players/' + localId);
-            playerRef.onDisconnect().remove();
-
-            db.ref('players').on('value', (snap) => {
-                allPlayers = snap.val() || {};
-                // Pre-load images to avoid flickering
-                Object.keys(allPlayers).forEach(id => {
-                    if(allPlayers[id].avatar && !avatarImages[id]) {
-                        avatarImages[id] = new Image();
-                        avatarImages[id].src = allPlayers[id].avatar;
-                    }
-                });
-            });
-
-            setInterval(() => {
-                if(inGame) db.ref('players/' + localId).update(myPlayer);
-            }, 100);
-
+            inGame = true; player.name = document.getElementById('user-name').value;
+            player.x = canvas.width/2; player.y = canvas.height*0.8; player.tx = player.x; player.ty = player.y;
             loop();
         }
 
-        function setAction(type) { 
-            myPlayer.action = type; 
-            setTimeout(() => { if(myPlayer.action === type) myPlayer.action = null; }, 3500); 
-        }
+        function setAction(type) { action = type; timer = 150; }
 
-        function spawnParticle(p, type) {
+        // فەنکشن بۆ دروستکردنی پارە (ڕێک وەک دڵەکە)
+        function spawnMoney() {
             particles.push({
-                x: p.x + (Math.random() - 0.5) * 60,
-                y: p.y - 120,
-                size: type === 'heart' ? 20 : 25,
-                speedY: 2 + Math.random() * 2,
-                opacity: 1, vx: (Math.random() - 0.5) * 4, type: type,
-                rot: Math.random() * Math.PI, text: type === 'heart' ? '❤️' : null
+                x: player.x + (Math.random() - 0.5) * 60,
+                y: player.y - 120,
+                size: 25 + Math.random() * 20,
+                speedY: 2 + Math.random() * 3,
+                opacity: 1,
+                vx: (Math.random() - 0.5) * 4,
+                rot: Math.random() * Math.PI * 2,
+                rotV: (Math.random() - 0.5) * 0.1
             });
         }
 
         function loop() {
             if(!inGame) return;
 
-            if (myPlayer.x > canvas.width - 40 && myPlayer.room === "Lobby") {
-                myPlayer.room = "VIP Room"; document.getElementById('room-tag').innerText = "VIP ROOM 💎";
-                myPlayer.x = 60; myPlayer.tx = 60;
-            } else if (myPlayer.x < 40 && myPlayer.room === "VIP Room") {
-                myPlayer.room = "Lobby"; document.getElementById('room-tag').innerText = "LOBBY";
-                myPlayer.x = canvas.width - 60; myPlayer.tx = canvas.width - 60;
+            // Room Logic
+            if (player.x > canvas.width - 40 && currentRoomName === "Lobby") {
+                currentBg = vipBg; currentRoomName = "VIP Room";
+                document.getElementById('room-tag').innerText = "VIP Room 💎";
+                player.x = 60; player.tx = 60;
+            } else if (player.x < 40 && currentRoomName === "VIP Room") {
+                currentBg = lobbyBg; currentRoomName = "Lobby";
+                document.getElementById('room-tag').innerText = "Lobby";
+                player.x = canvas.width - 60; player.tx = canvas.width - 60;
             }
 
-            myPlayer.x += (myPlayer.tx - myPlayer.x) * 0.12;
-            myPlayer.y += (myPlayer.ty - myPlayer.y) * 0.12;
-            if(myPlayer.chatT > 0) myPlayer.chatT--; else myPlayer.chat = "";
-
+            player.x += (player.tx - player.x) * 0.1; player.y += (player.ty - player.y) * 0.1;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            let bg = (myPlayer.room === "Lobby") ? lobbyBg : vipBg;
-            if(bg.complete) ctx.drawImage(bg, 0, 0, canvas.width, canvas.height);
+            if(currentBg.complete) ctx.drawImage(currentBg, 0, 0, canvas.width, canvas.height);
             
+            // Shadow
+            ctx.fillStyle = "rgba(0, 0, 0, 0.3)"; 
+            ctx.beginPath(); ctx.ellipse(player.x, player.y - 22, 40, 15, 0, 0, Math.PI*2); ctx.fill();
+
+            // Draw Money Particles
             particles.forEach((p, index) => {
                 ctx.save();
                 ctx.globalAlpha = p.opacity;
-                if(p.type === 'money' && moneyImg.complete) {
-                    ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+                ctx.translate(p.x, p.y);
+                ctx.rotate(p.rot);
+                if(moneyImg.complete && moneyImg.width > 0) {
                     ctx.drawImage(moneyImg, -p.size/2, -p.size/2, p.size, p.size);
-                } else if(p.type === 'heart') {
-                    ctx.font = `${p.size}px Arial`; ctx.fillText(p.text, p.x, p.y);
                 }
                 ctx.restore();
-                p.y -= p.speedY; p.opacity -= 0.02;
+                p.y -= p.speedY; p.x += p.vx; p.rot += p.rotV; p.opacity -= 0.012;
                 if (p.opacity <= 0) particles.splice(index, 1);
             });
 
-            // ڕێندەرکردنی هەمووان
-            Object.keys(allPlayers).forEach(id => {
-                if(allPlayers[id].room === myPlayer.room) {
-                    drawPlayer(allPlayers[id], id);
-                }
-            });
+            // Chat
+            if (chatMessage && chatTimer > 0 && bubbleImg.complete) {
+                let bW = 215, bH = 107, bX = player.x - 80, bY = player.y - 240;
+                ctx.drawImage(bubbleImg, bX, bY, bW, bH);
+                ctx.fillStyle = "black"; ctx.textAlign = "center"; ctx.font = "bold 14px Arial";
+                ctx.fillText(chatMessage, bX + 107, bY + 55);
+                chatTimer--;
+            }
 
+            ctx.save();
+            ctx.translate(player.x, player.y);
+            let pSize = 160;
+            let jump = 0, rot = 0, sc = 1, pX = player.scaleX;
+
+            if (action === 'dance') {
+                jump = Math.sin(Date.now() * 0.015) * 15;
+                sc = 1 + Math.sin(Date.now() * 0.015) * 0.05;
+            } else if (action === 'sleep') {
+                rot = Math.PI / 2; jump = 50;
+                if(sleepImg.complete) ctx.drawImage(sleepImg, -30, -220, 60, 60);
+            } else if (action === 'money') {
+                if(Math.random() < 0.2) spawnMoney(); // دروستکردنی پارەی PNG
+                sc = 1 + Math.sin(Date.now() * 0.04) * 0.05;
+            } else if (action === 'shock') {
+                ctx.translate((Math.random()-0.5)*10, 0);
+                sc = 0.9 + Math.random() * 0.2;
+            } else if (action === 'fly') {
+                jump = -Math.abs(Math.sin(Date.now() * 0.01)) * 80;
+            }
+
+            ctx.save();
+            ctx.translate(0, jump);
+            ctx.rotate(rot);
+
+            // Draw Name
+            ctx.save(); ctx.scale(pX, 1);
+            ctx.fillStyle = "white"; ctx.textAlign = "center"; ctx.font = "bold 15px Arial";
+            ctx.fillText(player.name, 0, -135); ctx.restore();
+
+            // Draw Body
+            ctx.scale(pX * sc, sc);
+            if(charImg.complete) ctx.drawImage(charImg, -pSize/2, -pSize, pSize, pSize);
+            if (hasAvatar && userAvatar.complete) ctx.drawImage(userAvatar, -27, -120, 54, 54);
+            
+            ctx.restore(); 
+            ctx.restore(); 
+
+            if (timer > 0) timer--; else action = null;
             requestAnimationFrame(loop);
         }
 
-        function drawPlayer(p, id) {
-            ctx.save();
-            ctx.translate(p.x, p.y);
-            
-            // Shadow
-            ctx.fillStyle = "rgba(0,0,0,0.3)";
-            ctx.beginPath(); ctx.ellipse(0, -20, 40, 15, 0, 0, Math.PI*2); ctx.fill();
-
-            // Bubble
-            if (p.chat && bubbleImg.complete) {
-                ctx.drawImage(bubbleImg, -85, -240, 200, 100);
-                ctx.fillStyle = "black"; ctx.textAlign = "center"; ctx.font = "bold 14px Arial";
-                ctx.fillText(p.chat, 15, -185);
-            }
-
-            let jump = 0, rot = 0, shake = 0;
-            if (p.action === 'dance') jump = Math.sin(Date.now() * 0.015) * 15;
-            if (p.action === 'money' && Math.random() < 0.1) spawnParticle(p, 'money');
-            if (p.action === 'heart' && Math.random() < 0.1) spawnParticle(p, 'heart');
-            if (p.action === 'fly') jump = -Math.abs(Math.sin(Date.now() * 0.01)) * 100;
-            if (p.action === 'shock') shake = (Math.random() - 0.5) * 10;
-            if (p.action === 'sleep') { rot = Math.PI/2; jump = 50; if(sleepImg.complete) ctx.drawImage(sleepImg, -30, -220, 60, 60); }
-
-            ctx.translate(shake, jump);
-            ctx.rotate(rot);
-
-            ctx.fillStyle = "white"; ctx.textAlign = "center"; ctx.font = "bold 15px sans-serif";
-            ctx.fillText(p.name, 0, -135);
-
-            ctx.scale(p.scaleX, 1);
-            if(charImg.complete) ctx.drawImage(charImg, -80, -160, 160, 160);
-            
-            // --- وێنەی چوارگۆشە ---
-            let img = avatarImages[id];
-            if(img && img.complete) {
-                ctx.fillStyle = "white";
-                ctx.fillRect(-28, -148, 56, 56); // Frame
-                ctx.drawImage(img, -26, -146, 52, 52); // Square Image
-            }
-            ctx.restore();
-        }
-
-        function handleInput(clientX, clientY, target) {
-            if(!inGame || target.tagName === 'INPUT' || target.closest('button')) return; 
-            myPlayer.tx = clientX; 
-            myPlayer.ty = Math.max(canvas.height*0.45, Math.min(canvas.height*0.95, clientY)); 
-            myPlayer.scaleX = (myPlayer.tx > myPlayer.x) ? 1 : -1; 
-        }
-
-        window.addEventListener('mousedown', (e) => handleInput(e.clientX, e.clientY, e.target));
-        window.addEventListener('touchstart', (e) => {
-            const touch = e.touches[0];
-            handleInput(touch.clientX, touch.clientY, e.target);
-            if (inGame && e.target.tagName === 'CANVAS') e.preventDefault();
-        }, { passive: false });
-
         document.getElementById('chat-input').addEventListener('keypress', function(e) {
             if (e.key === 'Enter' && this.value.trim() !== "") {
-                myPlayer.chat = this.value; myPlayer.chatT = 180;
-                this.value = ""; this.blur();
+                chatMessage = this.value; chatTimer = 180; this.value = ""; this.blur();
             }
+        });
+
+        window.addEventListener('mousedown', (e) => { 
+            if(!inGame || e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON') return; 
+            player.tx = e.clientX; player.ty = Math.max(canvas.height*0.5, Math.min(canvas.height*0.95, e.clientY)); 
+            player.scaleX = (player.tx > player.x) ? 1 : -1; 
         });
     </script>
 </body>
