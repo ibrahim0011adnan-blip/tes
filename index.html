@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Satoru Hub - Multiplayer ✨</title>
+    <title>Satoru Hub - Multiplayer Fix ✨</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
     
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -102,7 +102,6 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
     <script>
-        // Firebase Config
         const firebaseConfig = {
             apiKey: "AIzaSyCZOjVeUg4cPILA5eMSGbDURN8qMvCbZJQ",
             authDomain: "satoru-hub-9806d.firebaseapp.com",
@@ -115,10 +114,12 @@
 
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        let localId = "user_" + Math.floor(Math.random()*999999);
+        let localId = "u_" + Math.floor(Math.random()*99999);
+        
         let myPlayer = { x: 0, y: 0, tx: 0, ty: 0, name: "Ibrahim", avatar: "", scaleX: 1, action: null, chat: "", chatT: 0, room: "Lobby" };
         let allPlayers = {};
-        
+        let avatarImages = {}; // Cache for images
+
         const charImg = new Image(); charImg.src = 'char.png'; 
         const lobbyBg = new Image(); lobbyBg.src = 'room1.jpg';
         const vipBg = new Image(); vipBg.src = 'vip.jpg'; 
@@ -144,7 +145,8 @@
         };
 
         function applyCrop() {
-            myPlayer.avatar = cropper.getCroppedCanvas({ width: 100, height: 100 }).toDataURL();
+            // Compressed for fast multiplayer
+            myPlayer.avatar = cropper.getCroppedCanvas({ width: 64, height: 64 }).toDataURL('image/jpeg', 0.7);
             closeCrop();
         }
         function closeCrop() { document.getElementById('crop-modal').style.display = 'none'; }
@@ -160,29 +162,37 @@
             myPlayer.x = canvas.width/2; myPlayer.y = canvas.height*0.8;
             myPlayer.tx = myPlayer.x; myPlayer.ty = myPlayer.y;
 
-            // Firebase Online System
-            db.ref('players/' + localId).onDisconnect().remove();
+            const playerRef = db.ref('players/' + localId);
+            playerRef.onDisconnect().remove();
+
             db.ref('players').on('value', (snap) => {
                 allPlayers = snap.val() || {};
+                // Pre-load images to avoid flickering
+                Object.keys(allPlayers).forEach(id => {
+                    if(allPlayers[id].avatar && !avatarImages[id]) {
+                        avatarImages[id] = new Image();
+                        avatarImages[id].src = allPlayers[id].avatar;
+                    }
+                });
             });
 
             setInterval(() => {
-                if(inGame) db.ref('players/' + localId).set(myPlayer);
-            }, 50);
+                if(inGame) db.ref('players/' + localId).update(myPlayer);
+            }, 100);
 
             loop();
         }
 
         function setAction(type) { 
             myPlayer.action = type; 
-            setTimeout(() => { if(myPlayer.action === type) myPlayer.action = null; }, 4000); 
+            setTimeout(() => { if(myPlayer.action === type) myPlayer.action = null; }, 3500); 
         }
 
         function spawnParticle(p, type) {
             particles.push({
                 x: p.x + (Math.random() - 0.5) * 60,
                 y: p.y - 120,
-                size: type === 'heart' ? 22 + Math.random()*10 : 25 + Math.random()*20,
+                size: type === 'heart' ? 20 : 25,
                 speedY: 2 + Math.random() * 2,
                 opacity: 1, vx: (Math.random() - 0.5) * 4, type: type,
                 rot: Math.random() * Math.PI, text: type === 'heart' ? '❤️' : null
@@ -192,7 +202,6 @@
         function loop() {
             if(!inGame) return;
 
-            // Room logic
             if (myPlayer.x > canvas.width - 40 && myPlayer.room === "Lobby") {
                 myPlayer.room = "VIP Room"; document.getElementById('room-tag').innerText = "VIP ROOM 💎";
                 myPlayer.x = 60; myPlayer.tx = 60;
@@ -201,15 +210,14 @@
                 myPlayer.x = canvas.width - 60; myPlayer.tx = canvas.width - 60;
             }
 
-            myPlayer.x += (myPlayer.tx - myPlayer.x) * 0.1;
-            myPlayer.y += (myPlayer.ty - myPlayer.y) * 0.1;
+            myPlayer.x += (myPlayer.tx - myPlayer.x) * 0.12;
+            myPlayer.y += (myPlayer.ty - myPlayer.y) * 0.12;
             if(myPlayer.chatT > 0) myPlayer.chatT--; else myPlayer.chat = "";
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             let bg = (myPlayer.room === "Lobby") ? lobbyBg : vipBg;
             if(bg.complete) ctx.drawImage(bg, 0, 0, canvas.width, canvas.height);
             
-            // Particles
             particles.forEach((p, index) => {
                 ctx.save();
                 ctx.globalAlpha = p.opacity;
@@ -217,29 +225,32 @@
                     ctx.translate(p.x, p.y); ctx.rotate(p.rot);
                     ctx.drawImage(moneyImg, -p.size/2, -p.size/2, p.size, p.size);
                 } else if(p.type === 'heart') {
-                    ctx.font = `${p.size}px Arial`;
-                    ctx.fillText(p.text, p.x, p.y);
+                    ctx.font = `${p.size}px Arial`; ctx.fillText(p.text, p.x, p.y);
                 }
                 ctx.restore();
-                p.y -= p.speedY; p.x += p.vx; p.opacity -= 0.015;
+                p.y -= p.speedY; p.opacity -= 0.02;
                 if (p.opacity <= 0) particles.splice(index, 1);
             });
 
-            // Draw everyone
+            // ڕێندەرکردنی هەمووان
             Object.keys(allPlayers).forEach(id => {
-                if(allPlayers[id].room === myPlayer.room) drawPlayer(allPlayers[id]);
+                if(allPlayers[id].room === myPlayer.room) {
+                    drawPlayer(allPlayers[id], id);
+                }
             });
 
             requestAnimationFrame(loop);
         }
 
-        function drawPlayer(p) {
+        function drawPlayer(p, id) {
             ctx.save();
             ctx.translate(p.x, p.y);
             
+            // Shadow
             ctx.fillStyle = "rgba(0,0,0,0.3)";
             ctx.beginPath(); ctx.ellipse(0, -20, 40, 15, 0, 0, Math.PI*2); ctx.fill();
 
+            // Bubble
             if (p.chat && bubbleImg.complete) {
                 ctx.drawImage(bubbleImg, -85, -240, 200, 100);
                 ctx.fillStyle = "black"; ctx.textAlign = "center"; ctx.font = "bold 14px Arial";
@@ -264,13 +275,11 @@
             if(charImg.complete) ctx.drawImage(charImg, -80, -160, 160, 160);
             
             // --- وێنەی چوارگۆشە ---
-            if(p.avatar) {
-                let av = new Image(); av.src = p.avatar;
-                if(av.complete) {
-                    ctx.strokeStyle = "white"; ctx.lineWidth = 2;
-                    ctx.strokeRect(-27, -147, 54, 54); // هێڵی دەوری چوارگۆشەکە
-                    ctx.drawImage(av, -27, -147, 54, 54); // وێنە چوارگۆشەکە
-                }
+            let img = avatarImages[id];
+            if(img && img.complete) {
+                ctx.fillStyle = "white";
+                ctx.fillRect(-28, -148, 56, 56); // Frame
+                ctx.drawImage(img, -26, -146, 52, 52); // Square Image
             }
             ctx.restore();
         }
