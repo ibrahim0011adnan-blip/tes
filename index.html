@@ -3,41 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Satoru Hub - Multiplayer ✨</title>
+    <title>Satoru Hub - Online ✨</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
     
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <!-- Firebase SDK (Version 8) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
     <style>
-        body { margin: 0; background: #050505; overflow: hidden; font-family: sans-serif; color: white; touch-action: none; }
+        :root { --primary: #5d34a5; --glass: rgba(15, 15, 15, 0.98); }
+        body { margin: 0; background: #050505; overflow: hidden; font-family: 'Segoe UI', Tahoma, sans-serif; color: white; touch-action: none; }
         canvas { display: block; width: 100vw; height: 100vh; }
-        #main-ui { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; background: rgba(15, 15, 15, 0.98); padding: 25px; border-radius: 20px; border: 2px solid #5d34a5; width: 85%; max-width: 360px; z-index: 1000; }
-        .file-input-btn { margin: 15px 0; background: #222; padding: 10px; border-radius: 8px; width: 100%; color: #888; border: 1px solid #333; cursor: pointer; }
-        .start-btn { background: #5d34a5; color: white; border: none; padding: 15px; border-radius: 12px; cursor: pointer; width: 100%; font-weight: bold; font-size: 16px; }
+
+        #main-ui { 
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+            background: var(--glass); padding: 30px; border-radius: 25px; 
+            border: 2px solid var(--primary); width: 85%; max-width: 380px; z-index: 1000;
+            text-align: center; box-shadow: 0 0 30px rgba(93, 52, 165, 0.3);
+        }
+        .input-box { width: 100%; padding: 14px; margin: 10px 0; background: #111; border: 1px solid #333; color: white; border-radius: 12px; text-align: center; box-sizing: border-box; outline: none; }
+        .start-btn { background: var(--primary); color: white; border: none; padding: 16px; border-radius: 15px; cursor: pointer; width: 100%; font-weight: bold; font-size: 18px; margin-top: 10px; transition: 0.3s; }
+        .start-btn:hover { background: #7a46d1; }
+
         #crop-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; flex-direction: column; align-items: center; justify-content: center; }
-        .crop-container { width: 90%; max-width: 400px; background: #111; overflow: hidden; }
-        #game-ui { display: none; position: relative; width: 100vw; height: 100vh; }
-        #chat-input { position: absolute; bottom: 100px; left: 50%; transform: translateX(-50%); width: 250px; padding: 12px; border-radius: 25px; border: 1px solid #5d34a5; background: rgba(0,0,0,0.6); color: white; backdrop-filter: blur(10px); text-align: center; z-index: 100; }
-        #action-bar { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; z-index: 100; width: 95%; background: rgba(0,0,0,0.7); padding: 10px; border-radius: 20px; }
-        .act-btn { padding: 10px 0; background: #222; border: 1px solid #5d34a5; color: white; border-radius: 12px; font-size: 18px; cursor: pointer; }
+        .crop-container { width: 90%; max-width: 400px; background: #111; border-radius: 15px; overflow: hidden; }
+
+        #game-ui { display: none; }
+        #chat-input { position: absolute; bottom: 110px; left: 50%; transform: translateX(-50%); width: 80%; max-width: 300px; padding: 12px; border-radius: 30px; border: 1px solid var(--primary); background: rgba(0,0,0,0.6); color: white; backdrop-filter: blur(10px); text-align: center; z-index: 100; outline: none; }
+        #action-bar { position: absolute; bottom: 25px; left: 50%; transform: translateX(-50%); display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; z-index: 100; width: 90%; max-width: 450px; background: rgba(0,0,0,0.7); padding: 12px; border-radius: 20px; backdrop-filter: blur(10px); border: 1px solid rgba(93, 52, 165, 0.3); }
+        .act-btn { height: 45px; background: #222; border: 1px solid var(--primary); color: white; border-radius: 12px; font-size: 20px; cursor: pointer; transition: 0.2s; }
+        .act-btn:active { transform: scale(0.9); }
     </style>
 </head>
 <body>
 
     <div id="main-ui">
-        <h2 style="color: #5d34a5;">Satoru Hub</h2>
-        <input type="text" id="user-name" style="width:90%; padding:12px; margin-bottom:10px; background:#111; border:1px solid #333; color:white; border-radius:8px; text-align:center;" placeholder="ناوەکەت بنوسە..." value="Ibrahim">
-        <div class="file-input-btn" onclick="document.getElementById('avatar-upload').click()">وێنەیەک هەڵبژێرە 📸</div>
-        <input type="file" id="avatar-upload" style="display:none" accept="image/*">
-        <button class="start-btn" onclick="enterRoom()">دەستپێکردن ✨</button>
+        <h2 style="color: var(--primary); letter-spacing: 2px; margin-top: 0; text-shadow: 0 0 10px rgba(93,52,165,0.5);">SATORU HUB</h2>
+        <input type="text" id="user-name" class="input-box" placeholder="ناوەکەت بنوسە..." value="Ibrahim">
+        <div class="input-box" style="cursor: pointer; color: #aaa; border: 1px dashed #5d34a5;" onclick="document.getElementById('avatar-upload').click()">وێنەی پڕۆفایل (Avatar) 📷</div>
+        <input type="file" id="avatar-upload" style="display: none;" accept="image/*">
+        <button class="start-btn" onclick="enterRoom()">چوونە ژوورەوە ✨</button>
     </div>
 
     <div id="crop-modal">
-        <div class="crop-container"><img id="crop-image" style="max-width: 100%;"></div>
-        <div class="crop-controls" style="margin-top:10px;">
-            <button class="start-btn" onclick="applyCrop()" style="width:auto; padding:10px 30px;">تەواو</button>
-        </div>
+        <div class="crop-container"><img id="crop-image"></div>
+        <button class="start-btn" style="width: auto; padding: 10px 40px; margin-top: 20px;" onclick="applyCrop()">✅ تەواو</button>
     </div>
 
     <div id="game-ui">
@@ -47,107 +57,119 @@
             <button class="act-btn" onclick="setAction('flip')">🌀</button>
             <button class="act-btn" onclick="setAction('fly')">🚀</button>
             <button class="act-btn" onclick="setAction('ghost')">👻</button>
-            <button class="act-btn" style="background:#ff4d4d !important;" onclick="location.reload()">🚪</button>
+            <button class="act-btn" style="background:#ff4d4d !important; border-color: #ff4d4d;" onclick="location.reload()">🚪</button>
         </div>
         <canvas id="gameCanvas"></canvas>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
     <script>
-        // --- 1. Firebase Configuration (بۆ خۆت لێرە چاکی بکە) ---
+        // لێرە کۆدەکەی خۆتم بۆ داناویت بەو شێوەیەی کار بکات
         const firebaseConfig = {
-            databaseURL: "لێرە لینکی داتابەیسەکەت دابنێ" 
+            apiKey: "AIzaSyCZOjVeUg4cPILA5eMSGbDURN8qMvCbZJQ",
+            authDomain: "satoru-hub-9806d.firebaseapp.com",
+            projectId: "satoru-hub-9806d",
+            storageBucket: "satoru-hub-9806d.firebasestorage.app",
+            messagingSenderId: "340283464699",
+            appId: "1:340283464699:web:c9b3c09ce029d4dd6b895e",
+            measurementId: "G-KEWSWLXE07"
         };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+        
+        let db;
+        try {
+            firebase.initializeApp(firebaseConfig);
+            db = firebase.database();
+        } catch (e) { console.warn("Firebase Error: Connection failed."); }
 
+        const localId = "u_" + Math.floor(Math.random() * 1000000);
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        const localPlayerId = "u_" + Math.floor(Math.random() * 999999);
         
-        let players = {}; // هەموو یاریزانەکان لێرە کۆدەبنەوە
-        let myData = { x: 0, y: 0, tx: 0, ty: 0, name: "", avatar: "", scaleX: 1, action: null, chat: "", timer: 0 };
-        
-        let avatarImages = {}; 
-        const charImg = new Image(); charImg.src = 'char.png'; 
+        let inGame = false, cropper, players = {};
+        let myData = { x: 0, y: 0, tx: 0, ty: 0, name: "Ibrahim", avatar: "", scaleX: 1, action: null, timer: 0, chat: "", chatTimer: 0 };
+
+        const charImg = new Image(); charImg.src = 'char.png';
         const bgImg = new Image(); bgImg.src = 'room1.jpg';
         const bubbleImg = new Image(); bubbleImg.src = 'ChatBubble.png';
         const heartImg = new Image(); heartImg.src = 'heart.png';
+        let avatarImages = {};
+        let hearts = [];
 
-        let inGame = false, cropper;
-
-        // وێنە هەڵگرتن و بڕین
-        document.getElementById('avatar-upload').onchange = function(e) {
-            const file = e.target.files[0];
+        document.getElementById('avatar-upload').onchange = (e) => {
+            if(!e.target.files[0]) return;
             const reader = new FileReader();
-            reader.onload = function(event) {
-                document.getElementById('crop-image').src = event.target.result;
+            reader.onload = (ev) => {
+                document.getElementById('crop-image').src = ev.target.result;
                 document.getElementById('crop-modal').style.display = 'flex';
-                if (cropper) cropper.destroy();
+                if(cropper) cropper.destroy();
                 cropper = new Cropper(document.getElementById('crop-image'), { aspectRatio: 1, viewMode: 1 });
             };
-            reader.readAsDataURL(file);
+            reader.readAsDataURL(e.target.files[0]);
         };
 
         function applyCrop() {
-            myData.avatar = cropper.getCroppedCanvas({ width: 100, height: 100 }).toDataURL('image/jpeg', 0.5);
+            myData.avatar = cropper.getCroppedCanvas({ width: 100, height: 100 }).toDataURL('image/jpeg', 0.7);
             document.getElementById('crop-modal').style.display = 'none';
         }
 
         function enterRoom() {
-            myData.name = document.getElementById('user-name').value;
+            myData.name = document.getElementById('user-name').value || "Ibrahim";
             document.getElementById('main-ui').style.display = 'none';
             document.getElementById('game-ui').style.display = 'block';
-            inGame = true;
-            
-            myData.x = canvas.width/2; myData.y = canvas.height*0.8;
+            inGame = true; resize();
+            myData.x = canvas.width/2; myData.y = canvas.height * 0.8;
             myData.tx = myData.x; myData.ty = myData.y;
 
-            // ناردنی زانیاری بۆ سێرڤەر
-            const playerRef = db.ref('players/' + localPlayerId);
-            playerRef.set(myData);
-            playerRef.onDisconnect().remove();
-
-            // خوێندنەوەی یاریزانەکانی تر
-            db.ref('players').on('value', (snapshot) => {
-                players = snapshot.val() || {};
-            });
-
+            if(db) {
+                const pRef = db.ref('players/' + localId);
+                pRef.set(myData);
+                pRef.onDisconnect().remove();
+                db.ref('players').on('value', (snap) => { players = snap.val() || {}; });
+            } else { players[localId] = myData; }
             loop();
         }
 
         function setAction(type) {
-            myData.action = type;
-            myData.timer = 120;
-            db.ref('players/' + localPlayerId).update({ action: type, timer: 120 });
+            myData.action = type; myData.timer = 120;
+            if(db) db.ref('players/' + localId).update({ action: type, timer: 120 });
         }
 
         function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-        window.onresize = resize; resize();
+        window.onresize = resize;
 
         function loop() {
             if(!inGame) return;
-
-            // جوڵەی نەرم
             myData.x += (myData.tx - myData.x) * 0.1;
             myData.y += (myData.ty - myData.y) * 0.1;
             if(myData.timer > 0) myData.timer--; else myData.action = null;
+            if(myData.chatTimer > 0) myData.chatTimer--;
 
-            // نوێکردنەوەی سێرڤەر
-            db.ref('players/' + localPlayerId).update({
-                x: myData.x, y: myData.y, scaleX: myData.scaleX, 
-                action: myData.action, timer: myData.timer, chat: myData.chat
-            });
+            if(db) {
+                db.ref('players/' + localId).update({ 
+                    x: myData.x, y: myData.y, scaleX: myData.scaleX, 
+                    action: myData.action, timer: myData.timer, 
+                    chat: myData.chat, chatTimer: myData.chatTimer,
+                    avatar: myData.avatar
+                });
+            } else { players[localId] = myData; }
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             if(bgImg.complete) ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
 
-            // کێشانی هەموو یاریزانەکان
             Object.keys(players).forEach(id => {
                 const p = players[id];
                 drawPlayer(p, id);
+                if(p.action === 'dance' && Math.random() < 0.1) {
+                    hearts.push({ x: p.x + (Math.random()-0.5)*60, y: p.y-120, size: 20, speed: 1+Math.random()*2, op: 1 });
+                }
             });
 
+            hearts.forEach((h, i) => {
+                ctx.save(); ctx.globalAlpha = h.op;
+                if(heartImg.complete) ctx.drawImage(heartImg, h.x, h.y, h.size, h.size);
+                ctx.restore(); h.y -= h.speed; h.op -= 0.02;
+                if(h.op <= 0) hearts.splice(i, 1);
+            });
             requestAnimationFrame(loop);
         }
 
@@ -155,54 +177,55 @@
             ctx.save();
             ctx.translate(p.x, p.y);
 
-            // سێبەر
-            ctx.fillStyle = "rgba(0,0,0,0.2)";
-            ctx.beginPath(); ctx.ellipse(0, -22, 40, 15, 0, 0, Math.PI*2); ctx.fill();
+            // Shadow
+            ctx.fillStyle = "rgba(0,0,0,0.3)";
+            ctx.beginPath(); ctx.ellipse(0, -10, 45, 15, 0, 0, Math.PI*2); ctx.fill();
 
-            // ناو
-            ctx.fillStyle = "white"; ctx.textAlign = "center"; ctx.font = "bold 14px Arial";
-            ctx.fillText(p.name, 0, -135);
+            // Name
+            ctx.fillStyle = "white"; ctx.textAlign = "center"; ctx.font = "bold 16px Arial";
+            ctx.shadowBlur = 4; ctx.shadowColor = "black";
+            ctx.fillText(p.name, 0, -145);
 
-            // چات
-            if(p.chat && bubbleImg.complete) {
-                ctx.drawImage(bubbleImg, -100, -230, 200, 90);
-                ctx.fillStyle = "black"; ctx.fillText(p.chat, 0, -185);
+            // Chat Bubble
+            if(p.chat && p.chatTimer > 0 && bubbleImg.complete) {
+                ctx.drawImage(bubbleImg, -105, -240, 210, 100);
+                ctx.fillStyle = "black"; ctx.textAlign = "center"; ctx.font = "bold 14px Arial";
+                ctx.fillText(p.chat, 0, -188);
             }
 
-            // ئەنیمەیشنەکان
             let jump = 0;
-            if(p.action === 'dance') jump = Math.sin(Date.now() * 0.01) * 10;
-            if(p.action === 'fly') jump = -50;
+            if(p.action === 'dance') jump = Math.sin(Date.now() * 0.015) * 15;
+            if(p.action === 'fly') jump = -60 + Math.sin(Date.now() * 0.005) * 15;
+            if(p.action === 'flip' && p.timer > 0) ctx.rotate((120 - p.timer) * 0.15);
 
             ctx.scale(p.scaleX, 1);
-            if(charImg.complete) ctx.drawImage(charImg, -80, -160 + jump, 160, 160);
+            if(p.action === 'ghost') ctx.globalAlpha = 0.4;
 
-            // وێنەی دەموچاو (Avatar)
+            let pSize = 170;
+            if(charImg.complete) ctx.drawImage(charImg, -pSize/2, -pSize + jump, pSize, pSize);
+            
+            // وێنەکە لێرە ڕێکخراوە بۆ سەر سنگ
             if(p.avatar) {
-                if(!avatarImages[id]) {
-                    avatarImages[id] = new Image();
-                    avatarImages[id].src = p.avatar;
-                }
+                if(!avatarImages[id]) { avatarImages[id] = new Image(); avatarImages[id].src = p.avatar; }
                 if(avatarImages[id].complete) {
-                    ctx.drawImage(avatarImages[id], -25, -135 + jump, 50, 50);
+                    let avSize = 56; 
+                    ctx.drawImage(avatarImages[id], -avSize/2, -pSize/1.4 + jump, avSize, avSize);
                 }
             }
-
             ctx.restore();
         }
 
-        // کۆنترۆڵ
         window.addEventListener('mousedown', (e) => {
             if(!inGame || e.target.tagName === 'INPUT' || e.target.closest('#action-bar')) return;
             myData.tx = e.clientX;
-            myData.ty = Math.max(canvas.height*0.5, e.clientY);
+            myData.ty = Math.max(canvas.height*0.55, e.clientY);
             myData.scaleX = (myData.tx > myData.x) ? 1 : -1;
         });
 
         document.getElementById('chat-input').addEventListener('keypress', (e) => {
             if(e.key === 'Enter') {
-                myData.chat = e.target.value;
-                setTimeout(() => { myData.chat = ""; }, 3000);
+                myData.chat = e.target.value; myData.chatTimer = 240;
+                if(db) db.ref('players/' + localId).update({ chat: myData.chat, chatTimer: 240 });
                 e.target.value = ""; e.target.blur();
             }
         });
