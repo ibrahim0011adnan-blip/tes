@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Satoru Hub - Square Avatar ✨</title>
+    <title>Satoru Hub - Full Multiplayer ✨</title>
     
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -13,36 +13,53 @@
         body { margin: 0; background: #050505; overflow: hidden; font-family: sans-serif; color: white; touch-action: none; }
         canvas { display: block; width: 100vw; height: 100vh; }
         
-        #main-ui { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; background: rgba(15, 15, 15, 0.98); padding: 25px; border-radius: 20px; border: 2px solid #5d34a5; width: 85%; max-width: 360px; z-index: 1000; box-shadow: 0 0 30px rgba(93, 52, 165, 0.3); }
-        
-        .google-btn { 
-            background: white; color: #444; border: none; padding: 15px; border-radius: 12px; 
-            cursor: pointer; width: 100%; font-weight: bold; font-size: 16px; 
-            display: flex; align-items: center; justify-content: center; gap: 10px;
-            margin-bottom: 15px; transition: 0.3s;
+        #main-ui { 
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+            text-align: center; background: rgba(15, 15, 15, 0.98); padding: 30px; 
+            border-radius: 25px; border: 2px solid #5d34a5; width: 85%; max-width: 360px; 
+            z-index: 1000; box-shadow: 0 0 40px rgba(93, 52, 165, 0.4); backdrop-filter: blur(10px);
         }
         
-        .start-btn { background: #5d34a5; color: white; border: none; padding: 15px; border-radius: 12px; cursor: pointer; width: 100%; font-weight: bold; font-size: 16px; }
+        .google-btn { 
+            background: white; color: #444; border: none; padding: 15px; border-radius: 15px; 
+            cursor: pointer; width: 100%; font-weight: bold; font-size: 16px; 
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            margin-top: 20px; transition: 0.3s;
+        }
+        .google-btn:hover { background: #f1f1f1; transform: scale(1.02); }
         
         #game-ui { display: none; position: relative; width: 100vw; height: 100vh; }
-        #chat-input { position: absolute; bottom: 100px; right: 20px; width: 250px; padding: 12px; border-radius: 25px; border: 1px solid #5d34a5; background: rgba(0,0,0,0.6); color: white; backdrop-filter: blur(10px); text-align: center; outline: none; font-size: 16px; z-index: 100; }
+        #chat-input { 
+            position: absolute; bottom: 100px; right: 20px; width: 250px; padding: 15px; 
+            border-radius: 30px; border: 1px solid #5d34a5; background: rgba(0,0,0,0.7); 
+            color: white; backdrop-filter: blur(15px); text-align: center; outline: none; font-size: 16px; z-index: 100; 
+        }
         
-        #action-bar { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; z-index: 100; width: 98%; background: rgba(0,0,0,0.7); padding: 10px; border-radius: 20px; backdrop-filter: blur(10px); }
-        .act-btn { padding: 10px 0; background: #222; border: 1px solid #5d34a5; color: white; border-radius: 12px; font-size: 18px; cursor: pointer; text-align: center; }
-        #room-tag { position: absolute; top: 20px; left: 20px; background: rgba(93, 52, 165, 0.4); padding: 5px 15px; border-radius: 15px; font-size: 14px; border: 1px solid #5d34a5; z-index: 200; }
+        #action-bar { 
+            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); 
+            display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; 
+            z-index: 100; width: 96%; max-width: 500px; background: rgba(0,0,0,0.8); 
+            padding: 12px; border-radius: 25px; backdrop-filter: blur(15px); border: 1px solid rgba(93, 52, 165, 0.3);
+        }
+        .act-btn { padding: 12px 0; background: #1a1a1a; border: 1px solid #5d34a5; color: white; border-radius: 15px; font-size: 20px; cursor: pointer; transition: 0.2s; }
+        .act-btn:active { transform: scale(0.9); background: #333; }
+
+        #room-tag { 
+            position: absolute; top: 30px; left: 20px; background: rgba(93, 52, 165, 0.5); 
+            padding: 8px 20px; border-radius: 20px; font-size: 14px; font-weight: bold; 
+            border: 1px solid #5d34a5; z-index: 200; backdrop-filter: blur(5px);
+        }
     </style>
 </head>
 <body>
 
     <div id="main-ui">
-        <h2 style="color: #8a4fff; margin-bottom: 20px;">Satoru Hub</h2>
+        <h1 style="color: #8a4fff; margin: 0 0 10px 0; letter-spacing: 2px;">Satoru Hub</h1>
+        <p style="color: #888; font-size: 14px;">بەخێربێیت، تکایە لۆگین بکە بۆ چوونەژوورەوە</p>
         <button class="google-btn" onclick="loginWithGoogle()">
             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/layout/google.svg" width="20">
             بەردەوامبوون بە Google
         </button>
-        <div style="margin: 10px 0; color: #555;">یان بە میوانی</div>
-        <input type="text" id="user-name" style="width:90%; padding:10px; margin-bottom:10px; background:#111; border:1px solid #333; color:white; border-radius:8px; text-align:center;" value="Ibrahim">
-        <button class="start-btn" onclick="enterRoom()">دەستپێکردن ✨</button>
     </div>
 
     <div id="game-ui">
@@ -54,7 +71,7 @@
             <button class="act-btn" onclick="setAction('money')">💸</button>
             <button class="act-btn" onclick="setAction('shock')">⚡</button>
             <button class="act-btn" onclick="setAction('fly')">🚀</button>
-            <button class="act-btn" style="background:#ff4d4d !important;" onclick="location.reload()">🚪</button>
+            <button class="act-btn" style="background:#ff4d4d !important; border:none;" onclick="location.reload()">🚪</button>
         </div>
         <canvas id="gameCanvas"></canvas>
     </div>
@@ -72,12 +89,13 @@
         const auth = firebase.auth();
         const db = firebase.database();
 
-        // --- 2. Game Variables ---
+        // --- 2. Variables ---
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        let localId = "guest_" + Math.floor(Math.random()*1000);
-        let myPlayer = { x: 0, y: 0, tx: 0, ty: 0, name: "Ibrahim", avatar: "", scaleX: 1, action: null, chat: "", chatT: 0 };
+        let localId = null;
+        let myPlayer = { x: 0, y: 0, tx: 0, ty: 0, name: "", avatar: "", scaleX: 1, action: null, chat: "", chatT: 0 };
         let allPlayers = {};
+        let avatarCache = {};
         
         const charImg = new Image(); charImg.src = 'char.png'; 
         const lobbyBg = new Image(); lobbyBg.src = 'room1.jpg';
@@ -91,9 +109,6 @@
         let inGame = false;
         let particles = [];
 
-        // بۆ هەڵگرتنی وێنەی یاریزانەکان بۆ ئەوەی دووبارە لۆد نەبنەوە
-        const avatarCache = {};
-
         // --- 3. Authentication ---
         async function loginWithGoogle() {
             const provider = new firebase.auth.GoogleAuthProvider();
@@ -103,43 +118,36 @@
                 myPlayer.name = result.user.displayName.split(' ')[0];
                 myPlayer.avatar = result.user.photoURL;
                 enterRoom();
-            } catch (e) { alert("کێشە لە لۆگین هەیە"); }
+            } catch (e) { alert("کێشە لە لۆگین دروست بوو"); }
         }
 
         function enterRoom() {
             document.getElementById('main-ui').style.display = 'none';
             document.getElementById('game-ui').style.display = 'block';
             inGame = true;
-            myPlayer.name = document.getElementById('user-name').value || myPlayer.name;
             
             myPlayer.x = canvas.width/2; myPlayer.y = canvas.height*0.8;
             myPlayer.tx = myPlayer.x; myPlayer.ty = myPlayer.y;
 
             db.ref('players/' + localId).onDisconnect().remove();
-            db.ref('players').on('value', (snap) => {
-                allPlayers = snap.val() || {};
-            });
+            db.ref('players').on('value', (snap) => { allPlayers = snap.val() || {}; });
 
-            setInterval(() => {
-                if(inGame) db.ref('players/' + localId).set(myPlayer);
-            }, 50);
-
+            setInterval(() => { if(inGame) db.ref('players/' + localId).set(myPlayer); }, 50);
             loop();
         }
 
-        // --- 4. Logic & Rendering ---
-        function setAction(type) { myPlayer.action = type; setTimeout(() => { if(myPlayer.action === type) myPlayer.action = null; }, 5000); }
+        // --- 4. Logic ---
+        function setAction(type) { 
+            myPlayer.action = type; 
+            setTimeout(() => { if(myPlayer.action === type) myPlayer.action = null; }, 5000); 
+        }
 
         function spawnMoney(x, y) {
             particles.push({
-                x: x + (Math.random() - 0.5) * 60,
-                y: y - 120,
-                size: 25 + Math.random() * 20,
-                speedY: 2 + Math.random() * 3,
-                opacity: 1,
-                vx: (Math.random() - 0.5) * 4,
-                rot: Math.random() * Math.PI * 2,
-                rotV: (Math.random() - 0.5) * 0.1
+                x: x + (Math.random() - 0.5) * 60, y: y - 120,
+                size: 25 + Math.random() * 20, speedY: 2 + Math.random() * 3,
+                opacity: 1, vx: (Math.random() - 0.5) * 4,
+                rot: Math.random() * Math.PI * 2, rotV: (Math.random() - 0.5) * 0.1
             });
         }
 
@@ -153,6 +161,7 @@
             myPlayer.y += (myPlayer.ty - myPlayer.y) * 0.1;
             if(myPlayer.chatT > 0) myPlayer.chatT--; else myPlayer.chat = "";
 
+            // Room Switch
             if (myPlayer.x > canvas.width - 40 && currentRoomName === "Lobby") {
                 currentBg = vipBg; currentRoomName = "VIP Room";
                 document.getElementById('room-tag').innerText = "VIP Room 💎";
@@ -166,6 +175,7 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             if(currentBg.complete) ctx.drawImage(currentBg, 0, 0, canvas.width, canvas.height);
 
+            // Money Particles
             particles.forEach((p, index) => {
                 ctx.save(); ctx.globalAlpha = p.opacity; ctx.translate(p.x, p.y); ctx.rotate(p.rot);
                 if(moneyImg.complete) ctx.drawImage(moneyImg, -p.size/2, -p.size/2, p.size, p.size);
@@ -174,63 +184,61 @@
                 if (p.opacity <= 0) particles.splice(index, 1);
             });
 
+            // Draw Players
             Object.keys(allPlayers).forEach(id => {
-                drawPlayer(allPlayers[id]);
+                const p = allPlayers[id];
+                ctx.save();
+                ctx.translate(p.x, p.y);
+                
+                // Shadow
+                ctx.fillStyle = "rgba(0,0,0,0.2)";
+                ctx.beginPath(); ctx.ellipse(0, -22, 40, 15, 0, 0, Math.PI*2); ctx.fill();
+
+                // Chat
+                if (p.chat && bubbleImg.complete) {
+                    ctx.drawImage(bubbleImg, -80, -240, 215, 107);
+                    ctx.fillStyle = "black"; ctx.textAlign = "center"; ctx.font = "bold 14px Arial";
+                    ctx.fillText(p.chat, 27, -185);
+                }
+
+                let jump = 0, rot = 0;
+                if (p.action === 'dance') jump = Math.sin(Date.now() * 0.015) * 15;
+                if (p.action === 'money') { if(Math.random() < 0.2) spawnMoney(p.x, p.y); }
+                if (p.action === 'fly') jump = -Math.abs(Math.sin(Date.now() * 0.01)) * 80;
+                if (p.action === 'sleep') { 
+                    rot = Math.PI / 2; jump = 50; 
+                    if(sleepImg.complete) ctx.drawImage(sleepImg, -30, -220, 60, 60); 
+                }
+
+                ctx.translate(0, jump);
+                ctx.rotate(rot);
+
+                // Name
+                ctx.fillStyle = "white"; ctx.textAlign = "center"; ctx.font = "bold 15px Arial";
+                ctx.fillText(p.name, 0, -135);
+
+                // Body
+                ctx.scale(p.scaleX, 1);
+                if(charImg.complete) ctx.drawImage(charImg, -80, -160, 160, 160);
+                
+                // Square Avatar (وێنەی چوارگۆشەیی سەر سنگ)
+                if(p.avatar) {
+                    if(!avatarCache[p.avatar]) {
+                        avatarCache[p.avatar] = new Image();
+                        avatarCache[p.avatar].src = p.avatar;
+                        avatarCache[p.avatar].crossOrigin = "anonymous";
+                    }
+                    if(avatarCache[p.avatar].complete) {
+                        ctx.drawImage(avatarCache[p.avatar], -27, -118, 54, 54);
+                    }
+                }
+                ctx.restore();
             });
 
             requestAnimationFrame(loop);
         }
 
-        function drawPlayer(p) {
-            ctx.save();
-            ctx.translate(p.x, p.y);
-            
-            // سێبەر
-            ctx.fillStyle = "rgba(0,0,0,0.2)";
-            ctx.beginPath(); ctx.ellipse(0, -22, 40, 15, 0, 0, Math.PI*2); ctx.fill();
-
-            // چات
-            if (p.chat && bubbleImg.complete) {
-                ctx.drawImage(bubbleImg, -80, -240, 215, 107);
-                ctx.fillStyle = "black"; ctx.textAlign = "center"; ctx.font = "bold 14px Arial";
-                ctx.fillText(p.chat, 27, -185);
-            }
-
-            let jump = 0, rot = 0, sc = 1;
-            if (p.action === 'dance') jump = Math.sin(Date.now() * 0.015) * 15;
-            if (p.action === 'money') { if(Math.random() < 0.2) spawnMoney(p.x, p.y); }
-            if (p.action === 'fly') jump = -Math.abs(Math.sin(Date.now() * 0.01)) * 80;
-            if (p.action === 'sleep') { rot = Math.PI / 2; jump = 50; if(sleepImg.complete) ctx.drawImage(sleepImg, -30, -220, 60, 60); }
-
-            ctx.translate(0, jump);
-            ctx.rotate(rot);
-
-            // ناو
-            ctx.fillStyle = "white"; ctx.textAlign = "center"; ctx.font = "bold 15px Arial";
-            ctx.fillText(p.name, 0, -135);
-
-            // جەستە
-            ctx.scale(p.scaleX, 1);
-            if(charImg.complete) ctx.drawImage(charImg, -80, -160, 160, 160);
-            
-            // --- کێشانی وێنەی ئاڤاتار بە چوارگۆشەیی ---
-            if(p.avatar) {
-                if(!avatarCache[p.avatar]) {
-                    avatarCache[p.avatar] = new Image();
-                    avatarCache[p.avatar].src = p.avatar;
-                    avatarCache[p.avatar].crossOrigin = "anonymous";
-                }
-                const av = avatarCache[p.avatar];
-                if(av.complete) {
-                    // لێرەدا وێنەکە بە چوارگۆشەیی دەکێشین ڕێک لە ناو سنگی کارەکتەرەکە
-                    ctx.drawImage(av, -27, -118, 54, 54); 
-                }
-            }
-
-            ctx.restore();
-        }
-
-        // --- 5. Event Listeners ---
+        // Input
         document.getElementById('chat-input').addEventListener('keypress', function(e) {
             if (e.key === 'Enter' && this.value.trim() !== "") {
                 myPlayer.chat = this.value; myPlayer.chatT = 180;
