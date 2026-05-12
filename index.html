@@ -3,101 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Satoru Hub - Login & Play ✨</title>
+    <title>Satoru Hub - Multiplayer ✨</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
     <style>
-        :root {
-            --primary: #5d34a5;
-            --bg: #050505;
-            --glass: rgba(15, 15, 15, 0.98);
-        }
-
-        body { margin: 0; background: var(--bg); overflow: hidden; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: white; touch-action: none; }
+        body { margin: 0; background: #050505; overflow: hidden; font-family: sans-serif; color: white; touch-action: none; }
         canvas { display: block; width: 100vw; height: 100vh; }
-
-        /* Login UI Layout */
-        #main-ui { 
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
-            text-align: center; background: var(--glass); padding: 35px; border-radius: 25px; 
-            border: 2px solid var(--primary); width: 85%; max-width: 380px; z-index: 1000;
-            box-shadow: 0 0 30px rgba(93, 52, 165, 0.3);
-        }
-
-        h2 { color: var(--primary); margin: 0 0 20px 0; font-size: 28px; letter-spacing: 2px; }
-
-        .input-group { margin-bottom: 20px; text-align: right; }
-        label { display: block; margin-bottom: 8px; font-size: 14px; color: #aaa; margin-right: 5px; }
-
-        #user-name { 
-            width: 100%; padding: 14px; background: #111; border: 1px solid #333; 
-            color: white; border-radius: 12px; text-align: center; font-size: 16px;
-            transition: 0.3s;
-        }
-        #user-name:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 10px rgba(93, 52, 165, 0.2); }
-
-        .file-input-wrapper {
-            position: relative; margin-bottom: 25px; background: #1a1a1a;
-            border: 2px dashed #333; border-radius: 12px; padding: 15px; cursor: pointer;
-        }
-
-        .start-btn { 
-            background: var(--primary); color: white; border: none; padding: 16px; 
-            border-radius: 15px; cursor: pointer; width: 100%; font-weight: bold; 
-            font-size: 18px; transition: 0.3s; box-shadow: 0 5px 15px rgba(93, 52, 165, 0.4);
-        }
-        .start-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(93, 52, 165, 0.6); }
-
-        /* Crop Modal */
-        #crop-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 2000; flex-direction: column; align-items: center; justify-content: center; }
-        .crop-container { width: 90%; max-width: 400px; max-height: 70vh; background: #111; border-radius: 15px; overflow: hidden; }
-        .crop-controls { margin-top: 20px; display: flex; gap: 15px; }
-        .crop-btn { background: var(--primary); color: white; border: none; padding: 12px 25px; border-radius: 10px; cursor: pointer; font-weight: bold; }
-
-        /* In-Game UI */
+        #main-ui { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; background: rgba(15, 15, 15, 0.98); padding: 25px; border-radius: 20px; border: 2px solid #5d34a5; width: 85%; max-width: 360px; z-index: 1000; }
+        .file-input-btn { margin: 15px 0; background: #222; padding: 10px; border-radius: 8px; width: 100%; color: #888; border: 1px solid #333; cursor: pointer; }
+        .start-btn { background: #5d34a5; color: white; border: none; padding: 15px; border-radius: 12px; cursor: pointer; width: 100%; font-weight: bold; font-size: 16px; }
+        #crop-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; flex-direction: column; align-items: center; justify-content: center; }
+        .crop-container { width: 90%; max-width: 400px; background: #111; overflow: hidden; }
         #game-ui { display: none; position: relative; width: 100vw; height: 100vh; }
-        #chat-input { 
-            position: absolute; bottom: 100px; left: 50%; transform: translateX(-50%);
-            width: 80%; max-width: 300px; padding: 12px 20px; border-radius: 30px; 
-            border: 1px solid var(--primary); background: rgba(0,0,0,0.6); color: white; 
-            backdrop-filter: blur(10px); text-align: center; font-size: 16px; z-index: 100;
-        }
-
-        #action-bar { 
-            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); 
-            display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; z-index: 100; 
-            width: 95%; max-width: 450px; background: rgba(0,0,0,0.7); padding: 12px; 
-            border-radius: 20px; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1);
-        }
-        .act-btn { height: 45px; background: #222; border: 1px solid var(--primary); color: white; border-radius: 12px; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
-        .act-btn:active { transform: scale(0.9); }
+        #chat-input { position: absolute; bottom: 100px; left: 50%; transform: translateX(-50%); width: 250px; padding: 12px; border-radius: 25px; border: 1px solid #5d34a5; background: rgba(0,0,0,0.6); color: white; backdrop-filter: blur(10px); text-align: center; z-index: 100; }
+        #action-bar { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; z-index: 100; width: 95%; background: rgba(0,0,0,0.7); padding: 10px; border-radius: 20px; }
+        .act-btn { padding: 10px 0; background: #222; border: 1px solid #5d34a5; color: white; border-radius: 12px; font-size: 18px; cursor: pointer; }
     </style>
 </head>
 <body>
 
     <div id="main-ui">
-        <h2>SATORU HUB</h2>
-        
-        <div class="input-group">
-            <label>ناونیشانی خۆت بنوسە:</label>
-            <input type="text" id="user-name" placeholder="بۆ نمونە: ئیبراهیم" value="Ibrahim">
-        </div>
-
-        <div class="input-group">
-            <label>وێنەیەک هەڵبژێرە:</label>
-            <div class="file-input-wrapper" onclick="document.getElementById('avatar-upload').click()">
-                <span id="file-status" style="color: #666;">کلیک بکە بۆ دیاریکردنی وێنە</span>
-                <input type="file" id="avatar-upload" style="display: none;" accept="image/*">
-            </div>
-        </div>
-
-        <button class="start-btn" onclick="enterRoom()">چوونە ژوورەوە ✨</button>
+        <h2 style="color: #5d34a5;">Satoru Hub</h2>
+        <input type="text" id="user-name" style="width:90%; padding:12px; margin-bottom:10px; background:#111; border:1px solid #333; color:white; border-radius:8px; text-align:center;" placeholder="ناوەکەت بنوسە..." value="Ibrahim">
+        <div class="file-input-btn" onclick="document.getElementById('avatar-upload').click()">وێنەیەک هەڵبژێرە 📸</div>
+        <input type="file" id="avatar-upload" style="display:none" accept="image/*">
+        <button class="start-btn" onclick="enterRoom()">دەستپێکردن ✨</button>
     </div>
 
     <div id="crop-modal">
-        <div class="crop-container"><img id="crop-image"></div>
-        <div class="crop-controls">
-            <button class="crop-btn" onclick="applyCrop()">✅ تەواو</button>
-            <button class="crop-btn" style="background:#444;" onclick="closeCrop()">❌ پاشگەزبونەوە</button>
+        <div class="crop-container"><img id="crop-image" style="max-width: 100%;"></div>
+        <div class="crop-controls" style="margin-top:10px;">
+            <button class="start-btn" onclick="applyCrop()" style="width:auto; padding:10px 30px;">تەواو</button>
         </div>
     </div>
 
@@ -108,166 +47,164 @@
             <button class="act-btn" onclick="setAction('flip')">🌀</button>
             <button class="act-btn" onclick="setAction('fly')">🚀</button>
             <button class="act-btn" onclick="setAction('ghost')">👻</button>
-            <button class="act-btn" style="background:#ff4d4d !important; border:none;" onclick="location.reload()">🚪</button>
+            <button class="act-btn" style="background:#ff4d4d !important;" onclick="location.reload()">🚪</button>
         </div>
         <canvas id="gameCanvas"></canvas>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
     <script>
+        // --- 1. Firebase Configuration (بۆ خۆت لێرە چاکی بکە) ---
+        const firebaseConfig = {
+            databaseURL: "لێرە لینکی داتابەیسەکەت دابنێ" 
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        let player = { x: 0, y: 0, tx: 0, ty: 0, name: "Ibrahim", scaleX: 1 };
+        const localPlayerId = "u_" + Math.floor(Math.random() * 999999);
         
-        let userAvatar = new Image();
+        let players = {}; // هەموو یاریزانەکان لێرە کۆدەبنەوە
+        let myData = { x: 0, y: 0, tx: 0, ty: 0, name: "", avatar: "", scaleX: 1, action: null, chat: "", timer: 0 };
+        
+        let avatarImages = {}; 
         const charImg = new Image(); charImg.src = 'char.png'; 
         const bgImg = new Image(); bgImg.src = 'room1.jpg';
         const bubbleImg = new Image(); bubbleImg.src = 'ChatBubble.png';
-        const heartImg = new Image(); heartImg.src = 'heart.png'; 
+        const heartImg = new Image(); heartImg.src = 'heart.png';
 
-        let hasAvatar = false, inGame = false, cropper;
-        let action = null, timer = 0, chatMessage = "", chatTimer = 0;
-        let hearts = []; 
+        let inGame = false, cropper;
 
-        // Handle Avatar Selection
+        // وێنە هەڵگرتن و بڕین
         document.getElementById('avatar-upload').onchange = function(e) {
             const file = e.target.files[0];
-            if (!file) return;
-            document.getElementById('file-status').innerText = "وێنە هەڵبژێردرا ✅";
             const reader = new FileReader();
             reader.onload = function(event) {
-                const imgElement = document.getElementById('crop-image');
-                imgElement.src = event.target.result;
+                document.getElementById('crop-image').src = event.target.result;
                 document.getElementById('crop-modal').style.display = 'flex';
                 if (cropper) cropper.destroy();
-                cropper = new Cropper(imgElement, { aspectRatio: 1, viewMode: 1, autoCropArea: 1 });
+                cropper = new Cropper(document.getElementById('crop-image'), { aspectRatio: 1, viewMode: 1 });
             };
             reader.readAsDataURL(file);
         };
 
         function applyCrop() {
-            userAvatar.src = cropper.getCroppedCanvas({ width: 200, height: 200 }).toDataURL();
-            hasAvatar = true; closeCrop();
+            myData.avatar = cropper.getCroppedCanvas({ width: 100, height: 100 }).toDataURL('image/jpeg', 0.5);
+            document.getElementById('crop-modal').style.display = 'none';
         }
-        function closeCrop() { document.getElementById('crop-modal').style.display = 'none'; }
+
+        function enterRoom() {
+            myData.name = document.getElementById('user-name').value;
+            document.getElementById('main-ui').style.display = 'none';
+            document.getElementById('game-ui').style.display = 'block';
+            inGame = true;
+            
+            myData.x = canvas.width/2; myData.y = canvas.height*0.8;
+            myData.tx = myData.x; myData.ty = myData.y;
+
+            // ناردنی زانیاری بۆ سێرڤەر
+            const playerRef = db.ref('players/' + localPlayerId);
+            playerRef.set(myData);
+            playerRef.onDisconnect().remove();
+
+            // خوێندنەوەی یاریزانەکانی تر
+            db.ref('players').on('value', (snapshot) => {
+                players = snapshot.val() || {};
+            });
+
+            loop();
+        }
+
+        function setAction(type) {
+            myData.action = type;
+            myData.timer = 120;
+            db.ref('players/' + localPlayerId).update({ action: type, timer: 120 });
+        }
 
         function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
         window.onresize = resize; resize();
 
-        function enterRoom() {
-            const nameInput = document.getElementById('user-name').value;
-            if(nameInput.trim() === "") {
-                alert("تکایە ناوێک بنوسە");
-                return;
-            }
-            document.getElementById('main-ui').style.display = 'none';
-            document.getElementById('game-ui').style.display = 'block';
-            inGame = true; 
-            player.name = nameInput;
-            player.x = canvas.width/2; player.y = canvas.height*0.8; player.tx = player.x; player.ty = player.y;
-            loop();
-        }
-
-        function setAction(type) { action = type; timer = 120; }
-
-        function spawnHearts() {
-            if (action === 'dance' && Math.random() < 0.15) {
-                hearts.push({
-                    x: player.x + (Math.random() - 0.5) * 60,
-                    y: player.y - 100,
-                    size: 20 + Math.random() * 10,
-                    speedY: 1 + Math.random() * 2,
-                    opacity: 1
-                });
-            }
-        }
-
-        function drawHearts() {
-            hearts.forEach((h, index) => {
-                ctx.save(); ctx.globalAlpha = h.opacity;
-                if(heartImg.complete) ctx.drawImage(heartImg, h.x - h.size/2, h.y - h.size/2, h.size, h.size);
-                ctx.restore();
-                h.y -= h.speedY; h.opacity -= 0.015;
-                if (h.opacity <= 0) hearts.splice(index, 1);
-            });
-        }
-
-        function drawChatBubble(x, y, text) {
-            if (!text || chatTimer <= 0 || !bubbleImg.complete) return;
-            ctx.save();
-            let bW = 215, bH = 107, bX = x - (bW/2) + 28, bY = y - 220;
-            ctx.drawImage(bubbleImg, bX, bY, bW, bH);
-            ctx.fillStyle = "black"; ctx.textAlign = "center"; ctx.font = "bold 14px Arial";
-            ctx.fillText(text, bX + (bW/2), bY + 55);
-            ctx.restore();
-        }
-
         function loop() {
             if(!inGame) return;
-            player.x += (player.tx - player.x) * 0.1; player.y += (player.ty - player.y) * 0.1;
+
+            // جوڵەی نەرم
+            myData.x += (myData.tx - myData.x) * 0.1;
+            myData.y += (myData.ty - myData.y) * 0.1;
+            if(myData.timer > 0) myData.timer--; else myData.action = null;
+
+            // نوێکردنەوەی سێرڤەر
+            db.ref('players/' + localPlayerId).update({
+                x: myData.x, y: myData.y, scaleX: myData.scaleX, 
+                action: myData.action, timer: myData.timer, chat: myData.chat
+            });
+
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             if(bgImg.complete) ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
-            
-            // Perfect Shadow
-            ctx.fillStyle = "rgba(0, 0, 0, 0.3)"; 
-            ctx.beginPath(); 
-            ctx.ellipse(player.x, player.y - 22, 40, 15, 0, 0, Math.PI*2); 
-            ctx.fill();
 
-            drawChatBubble(player.x, player.y, chatMessage);
-            if (chatTimer > 0) chatTimer--;
-            spawnHearts(); drawHearts();
+            // کێشانی هەموو یاریزانەکان
+            Object.keys(players).forEach(id => {
+                const p = players[id];
+                drawPlayer(p, id);
+            });
 
-            ctx.save();
-            ctx.translate(player.x, player.y);
-            let pSize = 160;
-            let dS = (action === 'dance') ? 1 + Math.sin(Date.now() * 0.015) * 0.1 : 1;
-
-            // Draw Name
-            ctx.save();
-            ctx.scale(dS, dS);
-            ctx.fillStyle = "white"; ctx.textAlign = "center"; ctx.font = "bold 16px Arial";
-            ctx.shadowBlur = 8; ctx.shadowColor = "black";
-            ctx.fillText(player.name, 0, -135); 
-            ctx.restore();
-
-            // Draw Character and Avatar
-            ctx.save();
-            if (action === 'fly') ctx.translate(0, -Math.abs(Math.sin(Date.now() * 0.01)) * 50);
-            if (action === 'flip' && timer > 0) ctx.rotate((120 - timer) * (Math.PI * 2 / 40));
-            ctx.scale(player.scaleX * dS, dS);
-            if (action === 'ghost') ctx.globalAlpha = 0.5;
-            ctx.shadowBlur = 20; ctx.shadowColor = "#5d34a5";
-            
-            if(charImg.complete) ctx.drawImage(charImg, -pSize/2, -pSize, pSize, pSize);
-            if (hasAvatar && userAvatar.complete) ctx.drawImage(userAvatar, -(pSize/2.9)/2, -pSize/1.33, pSize/2.9, pSize/2.9);
-            ctx.restore();
-
-            ctx.restore(); 
-
-            if (timer > 0) timer--; else action = null;
             requestAnimationFrame(loop);
         }
 
-        document.getElementById('chat-input').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter' && this.value.trim() !== "") {
-                chatMessage = this.value; chatTimer = 180; this.value = ""; this.blur();
+        function drawPlayer(p, id) {
+            ctx.save();
+            ctx.translate(p.x, p.y);
+
+            // سێبەر
+            ctx.fillStyle = "rgba(0,0,0,0.2)";
+            ctx.beginPath(); ctx.ellipse(0, -22, 40, 15, 0, 0, Math.PI*2); ctx.fill();
+
+            // ناو
+            ctx.fillStyle = "white"; ctx.textAlign = "center"; ctx.font = "bold 14px Arial";
+            ctx.fillText(p.name, 0, -135);
+
+            // چات
+            if(p.chat && bubbleImg.complete) {
+                ctx.drawImage(bubbleImg, -100, -230, 200, 90);
+                ctx.fillStyle = "black"; ctx.fillText(p.chat, 0, -185);
             }
+
+            // ئەنیمەیشنەکان
+            let jump = 0;
+            if(p.action === 'dance') jump = Math.sin(Date.now() * 0.01) * 10;
+            if(p.action === 'fly') jump = -50;
+
+            ctx.scale(p.scaleX, 1);
+            if(charImg.complete) ctx.drawImage(charImg, -80, -160 + jump, 160, 160);
+
+            // وێنەی دەموچاو (Avatar)
+            if(p.avatar) {
+                if(!avatarImages[id]) {
+                    avatarImages[id] = new Image();
+                    avatarImages[id].src = p.avatar;
+                }
+                if(avatarImages[id].complete) {
+                    ctx.drawImage(avatarImages[id], -25, -135 + jump, 50, 50);
+                }
+            }
+
+            ctx.restore();
+        }
+
+        // کۆنترۆڵ
+        window.addEventListener('mousedown', (e) => {
+            if(!inGame || e.target.tagName === 'INPUT' || e.target.closest('#action-bar')) return;
+            myData.tx = e.clientX;
+            myData.ty = Math.max(canvas.height*0.5, e.clientY);
+            myData.scaleX = (myData.tx > myData.x) ? 1 : -1;
         });
 
-        window.addEventListener('mousedown', (e) => { 
-            if(!inGame || e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON' || e.target.closest('#action-bar')) return; 
-            player.tx = e.clientX; 
-            player.ty = Math.max(canvas.height*0.5, Math.min(canvas.height*0.95, e.clientY)); 
-            player.scaleX = (player.tx > player.x) ? 1 : -1; 
-        });
-
-        window.addEventListener('touchstart', (e) => {
-            if(!inGame || e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON' || e.target.closest('#action-bar')) return;
-            let touch = e.touches[0];
-            player.tx = touch.clientX;
-            player.ty = Math.max(canvas.height*0.5, Math.min(canvas.height*0.95, touch.clientY));
-            player.scaleX = (player.tx > player.x) ? 1 : -1;
+        document.getElementById('chat-input').addEventListener('keypress', (e) => {
+            if(e.key === 'Enter') {
+                myData.chat = e.target.value;
+                setTimeout(() => { myData.chat = ""; }, 3000);
+                e.target.value = ""; e.target.blur();
+            }
         });
     </script>
 </body>
