@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Satoru Hub - Easy Entry 🍅</title>
+    <title>Satoru Hub - Quick Login 🍅</title>
     
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -15,48 +15,36 @@
         
         #main-ui { 
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
-            text-align: center; background: rgba(15, 15, 15, 0.98); padding: 35px; 
-            border-radius: 25px; border: 2px solid #5d34a5; width: 85%; max-width: 360px; 
-            z-index: 1000; box-shadow: 0 0 40px rgba(93, 52, 165, 0.4); backdrop-filter: blur(10px);
+            text-align: center; background: rgba(15, 15, 15, 0.98); padding: 40px; 
+            border-radius: 30px; border: 2px solid #5d34a5; width: 85%; max-width: 350px; 
+            z-index: 1000; box-shadow: 0 0 50px rgba(93, 52, 165, 0.5); backdrop-filter: blur(15px);
         }
 
-        input#guest-name {
-            width: 90%; padding: 12px; margin-bottom: 15px; background: #111; 
-            border: 1px solid #333; color: white; border-radius: 10px; text-align: center; font-size: 16px;
+        #user-name-input {
+            width: 90%; padding: 15px; margin-bottom: 20px; background: #000; 
+            border: 2px solid #333; color: white; border-radius: 15px; text-align: center; font-size: 18px; outline: none;
         }
+        #user-name-input:focus { border-color: #5d34a5; }
         
-        .btn { 
-            padding: 15px; border-radius: 15px; cursor: pointer; width: 100%; 
-            font-weight: bold; font-size: 16px; display: flex; align-items: center; 
-            justify-content: center; gap: 10px; margin-bottom: 10px; border: none; transition: 0.3s;
+        .start-btn { 
+            background: #5d34a5; color: white; border: none; padding: 15px; border-radius: 15px; 
+            cursor: pointer; width: 100%; font-weight: bold; font-size: 18px; transition: 0.3s;
         }
-        
-        .google-btn { background: white; color: #444; }
-        .guest-btn { background: #5d34a5; color: white; }
-        .btn:hover { transform: translateY(-2px); opacity: 0.9; }
+        .start-btn:hover { background: #7a46d1; transform: scale(1.02); }
 
         #game-ui { display: none; position: relative; width: 100vw; height: 100vh; }
         #chat-input { position: absolute; bottom: 100px; right: 20px; width: 250px; padding: 15px; border-radius: 30px; border: 1px solid #5d34a5; background: rgba(0,0,0,0.7); color: white; text-align: center; outline: none; z-index: 100; }
         #action-bar { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; z-index: 100; width: 96%; max-width: 550px; background: rgba(0,0,0,0.8); padding: 10px; border-radius: 25px; border: 1px solid rgba(93, 52, 165, 0.3); }
         .act-btn { padding: 10px 0; background: #1a1a1a; border: 1px solid #5d34a5; color: white; border-radius: 12px; font-size: 18px; cursor: pointer; }
-        #room-tag { position: absolute; top: 30px; left: 20px; background: rgba(93, 52, 165, 0.5); padding: 8px 20px; border-radius: 20px; z-index: 200; }
+        #room-tag { position: absolute; top: 30px; left: 20px; background: rgba(93, 52, 165, 0.5); padding: 8px 20px; border-radius: 20px; font-weight: bold; z-index: 200; }
     </style>
 </head>
 <body>
 
     <div id="main-ui">
-        <h1 style="color: #8a4fff; margin-bottom: 20px;">Satoru Hub</h1>
-        
-        <input type="text" id="guest-name" placeholder="ناوەکەت بنوسە..." maxlength="10">
-        
-        <button class="btn guest-btn" onclick="enterAsGuest()">🚀 چوونە ژوورەوە وەک میوان</button>
-        
-        <div style="margin: 15px 0; color: #555; font-size: 12px;">یان</div>
-        
-        <button class="btn google-btn" onclick="loginWithGoogle()">
-            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/layout/google.svg" width="18">
-            بەردەوامبوون بە Google
-        </button>
+        <h1 style="color: #8a4fff; margin-bottom: 25px; font-size: 28px;">Satoru Hub</h1>
+        <input type="text" id="user-name-input" placeholder="ناوەکەت لێرە بنوسە..." maxlength="12">
+        <button class="start-btn" onclick="enterGame()">چوونە ژوورەوە 🚀</button>
     </div>
 
     <div id="game-ui">
@@ -83,13 +71,12 @@
             appId: "1:340283464699:web:c9b3c09ce029d4dd6b895e"
         };
         firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
         const db = firebase.database();
 
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        let localId = null;
-        let myPlayer = { x: 0, y: 0, tx: 0, ty: 0, name: "Guest", avatar: "", scaleX: 1, action: null, chat: "", chatT: 0, hitT: 0 };
+        let localId = "guest_" + Math.random().toString(36).substr(2, 9);
+        let myPlayer = { x: 0, y: 0, tx: 0, ty: 0, name: "", avatar: "https://cdn-icons-png.flaticon.com/512/149/149071.png", scaleX: 1, action: null, chat: "", chatT: 0, hitT: 0 };
         let allPlayers = {};
         let avatarCache = {};
         let tomatoes = [];
@@ -100,37 +87,20 @@
         const vipBg = new Image(); vipBg.src = 'vip.jpg'; 
         const bubbleImg = new Image(); bubbleImg.src = 'ChatBubble.png';
         const moneyImg = new Image(); moneyImg.src = 'money.png'; 
-        // وێنەیەکی جێگرەوە بۆ میوانەکان
-        const defaultAvatar = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
 
         let currentBg = lobbyBg;
         let currentRoomName = "Lobby";
         let inGame = false;
 
-        function enterAsGuest() {
-            const nameInput = document.getElementById('guest-name').value.trim();
-            if(!nameInput) { alert("تکایە ناوێک بنوسە"); return; }
-            localId = "guest_" + Math.random().toString(36).substr(2, 9);
-            myPlayer.name = nameInput;
-            myPlayer.avatar = defaultAvatar;
-            enterRoom();
-        }
-
-        async function loginWithGoogle() {
-            const provider = new firebase.auth.GoogleAuthProvider();
-            try {
-                const result = await auth.signInWithPopup(provider);
-                localId = result.user.uid;
-                myPlayer.name = result.user.displayName.split(' ')[0];
-                myPlayer.avatar = result.user.photoURL;
-                enterRoom();
-            } catch (e) { alert("کێشە لە لۆگین هەیە"); }
-        }
-
-        function enterRoom() {
+        function enterGame() {
+            const name = document.getElementById('user-name-input').value.trim();
+            if(!name) { alert("تکایە ناوێک بنوسە بۆ ئەوەی دەست پێ بکەیت!"); return; }
+            myPlayer.name = name;
+            
             document.getElementById('main-ui').style.display = 'none';
             document.getElementById('game-ui').style.display = 'block';
             inGame = true;
+            
             myPlayer.x = canvas.width/2; myPlayer.y = canvas.height*0.8;
             myPlayer.tx = myPlayer.x; myPlayer.ty = myPlayer.y;
 
@@ -174,9 +144,11 @@
 
             if (myPlayer.x > canvas.width - 40 && currentRoomName === "Lobby") {
                 currentBg = vipBg; currentRoomName = "VIP Room";
+                document.getElementById('room-tag').innerText = "VIP Room 💎";
                 myPlayer.x = 60; myPlayer.tx = 60;
             } else if (myPlayer.x < 40 && currentRoomName === "VIP Room") {
                 currentBg = lobbyBg; currentRoomName = "Lobby";
+                document.getElementById('room-tag').innerText = "Lobby";
                 myPlayer.x = canvas.width - 60; myPlayer.tx = canvas.width - 60;
             }
 
@@ -197,7 +169,7 @@
                 
                 if (p.chat && bubbleImg.complete) {
                     ctx.drawImage(bubbleImg, -80, -240, 215, 107);
-                    ctx.fillStyle = "black"; ctx.textAlign = "center"; ctx.fillText(p.chat, 27, -185);
+                    ctx.fillStyle = "black"; ctx.textAlign = "center"; ctx.font = "bold 14px Arial"; ctx.fillText(p.chat, 27, -185);
                 }
 
                 let jump = (p.action === 'dance') ? Math.sin(Date.now() * 0.015) * 15 : 0;
