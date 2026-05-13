@@ -3,49 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SATORU - MULTI HUB</title>
+    <title>SATORU - ULTIMATE MULTIPLAYER</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
     <style>
-        :root { --gold: #ffcc33; --obsidian: #050505; --border: rgba(255, 204, 51, 0.5); }
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: var(--obsidian); font-family: sans-serif; overflow: hidden; }
+        :root { --gold: #ffcc33; --purple: #8e44ad; --obsidian: #050505; --border: rgba(255, 204, 51, 0.4); }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; overflow: hidden; font-family: 'Segoe UI', sans-serif; }
         
-        #menu-overlay { position: fixed; inset: 0; z-index: 2000; background: #000; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        .void-card { border: 1px solid var(--border); padding: 40px; text-align: center; background: #080808; width: 320px; }
-        .btn-void { width: 100%; padding: 15px; margin: 10px 0; background: transparent; border: 1px solid var(--border); color: var(--gold); cursor: pointer; text-transform: uppercase; font-weight: bold; }
-        .btn-void:hover { background: var(--gold); color: #000; }
-        
-        #room-ui { display: none; width: 100vw; height: 100vh; position: relative; background-size: cover; background-position: center; }
-        
-        /* CHARACTER STYLE */
-        .character { width: 120px; height: 120px; position: absolute; transition: all 0.5s ease; pointer-events: none; }
-        .char-base { width: 100%; height: 100%; background: url('char.png') center/contain no-repeat; position: relative; }
+        /* --- UI OVERLAYS --- */
+        #menu-overlay { position: fixed; inset: 0; z-index: 2000; background: radial-gradient(circle, #1a1a1a, #000); display: flex; align-items: center; justify-content: center; }
+        .void-card { border: 1px solid var(--border); padding: 40px; background: rgba(5,5,5,0.95); text-align: center; width: 320px; box-shadow: 0 0 40px rgba(142, 68, 173, 0.2); }
+        .btn-void { width: 100%; padding: 15px; margin: 10px 0; background: none; border: 1px solid var(--border); color: var(--gold); cursor: pointer; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; transition: 0.3s; }
+        .btn-void:hover { background: var(--gold); color: #000; box-shadow: 0 0 20px var(--gold); }
+        .input-void { width: 90%; padding: 12px; margin-bottom: 15px; background: #111; border: 1px solid #333; color: #fff; text-align: center; outline: none; }
+
+        #room-ui { display: none; width: 100vw; height: 100vh; position: relative; background-size: cover; background-position: center; background-image: url('Room1.jpg'); }
+
+        /* --- CHARACTER SYSTEM --- */
+        .character { position: absolute; width: 120px; height: 120px; transition: left 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), top 0.6s cubic-bezier(0.2, 0.8, 0.2, 1); z-index: 100; display: flex; flex-direction: column; align-items: center; pointer-events: none; }
+        .char-base { width: 100px; height: 100px; background: url('char.png') center/contain no-repeat; position: relative; }
         .char-photo { position: absolute; top: 16%; left: 19%; width: 62%; height: 56%; background-size: cover; border-radius: 50%; }
-        .char-name { position: absolute; top: -25px; left: 50%; transform: translateX(-50%); color: #fff; font-weight: bold; text-shadow: 0 0 5px #000; white-space: nowrap; }
-        
-        #video-screen { position: absolute; top: 30%; left: 38%; width: 24%; height: 20%; background: #000; border: 2px solid #222; }
+        .char-name { color: #fff; font-size: 13px; font-weight: 900; text-transform: uppercase; margin-bottom: 5px; text-shadow: 0 0 10px #000; background: rgba(0,0,0,0.5); padding: 2px 8px; border-radius: 10px; }
+
+        /* --- ACTIONS & EMOTES --- */
+        #control-deck { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); display: flex; gap: 15px; z-index: 1500; }
+        .action-btn { background: rgba(0,0,0,0.8); border: 1px solid var(--gold); color: var(--gold); width: 60px; height: 60px; border-radius: 50%; font-size: 24px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center; }
+        .action-btn:hover { transform: scale(1.1); background: var(--gold); color: #000; }
+
+        .particle { position: absolute; pointer-events: none; z-index: 200; animation: floatUp 3s forwards; }
+        @keyframes floatUp { 0% { transform: translateY(0) scale(0); opacity: 0; } 20% { opacity: 1; transform: translateY(-50px) scale(1.5); } 100% { transform: translateY(-300px) scale(0); opacity: 0; } }
+
         #crop-modal { display: none; position: fixed; inset: 0; z-index: 3000; background: #000; align-items: center; justify-content: center; flex-direction: column; }
     </style>
 </head>
-<body onclick="updateMyLocation(event)">
+<body onclick="moveMe(event)">
 
+    <audio id="kiss-sound" src="kiss.mp3"></audio>
+
+    <!-- STARTUP MENU -->
     <div id="menu-overlay">
         <div class="void-card">
-            <h2 style="color:var(--gold)">SATORU HUB</h2>
-            <input type="text" id="name-in" placeholder="Your Name..." style="width:90%; padding:10px; margin-bottom:10px;">
-            <button class="btn-void" onclick="document.getElementById('file-in').click()">Upload Avatar</button>
-            <input type="file" id="file-in" hidden onchange="startCrop(event)">
-            <button class="btn-void" style="background:var(--gold); color:#000" onclick="joinRoom()">Enter Room</button>
+            <h1 style="color:var(--gold); margin-bottom:30px; letter-spacing:8px;">SATORU</h1>
+            <input type="text" id="name-in" class="input-void" placeholder="ENTER NICKNAME">
+            <button class="btn-void" onclick="document.getElementById('file-in').click()">UPLOAD AVATAR</button>
+            <input type="file" id="file-in" hidden onchange="initCrop(event)">
+            <button class="btn-void" style="background:var(--gold); color:#000" onclick="enterWorld()">START SYNC</button>
         </div>
     </div>
 
+    <!-- AVATAR CROPPER -->
     <div id="crop-modal">
-        <img id="crop-prev" style="max-width:300px;">
-        <button class="btn-void" onclick="finishCrop()">Apply</button>
+        <div style="max-width:400px; margin-bottom:20px;"><img id="crop-prev" style="width:100%;"></div>
+        <button class="btn-void" style="width:200px" onclick="saveCrop()">CONFIRM BIO-SYNC</button>
     </div>
 
+    <!-- WORLD UI -->
     <div id="room-ui">
-        <div id="video-screen"><div id="player"></div></div>
         <div id="players-layer"></div>
+        
+        <div id="control-deck">
+            <button class="action-btn" onclick="sendAction('heart.png')">❤️</button>
+            <button class="action-btn" onclick="sendAction('kiss.png')">😘</button>
+            <button class="action-btn" onclick="location.reload()" style="font-size:16px;">EXIT</button>
+        </div>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -53,84 +72,114 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
 
     <script>
+        // --- CONFIG (ZANIARYAKANI XOT DABNERAWA) ---
         const firebaseConfig = {
             apiKey: "AIza...",
-            authDomain: "tes-...",
-            databaseURL: "https://tes-...",
-            projectId: "tes-...",
-            storageBucket: "tes-...",
+            authDomain: "...",
+            databaseURL: "...",
+            projectId: "...",
+            storageBucket: "...",
             appId: "..."
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        
-        let myId = Math.random().toString(36).substring(7);
-        let myName = "";
-        let myAvatar = "";
-        let cropper;
 
-        function startCrop(e) {
+        let myId = "USR_" + Math.random().toString(36).substr(2, 9);
+        let myName = "", myAvatar = "", cropper;
+
+        // --- AUTH & SETUP ---
+        function initCrop(e) {
             const reader = new FileReader();
             reader.onload = (ev) => {
                 document.getElementById('crop-prev').src = ev.target.result;
                 document.getElementById('crop-modal').style.display = 'flex';
+                if(cropper) cropper.destroy();
                 cropper = new Cropper(document.getElementById('crop-prev'), {aspectRatio: 1});
             };
             reader.readAsDataURL(e.target.files[0]);
         }
 
-        function finishCrop() {
-            myAvatar = cropper.getCroppedCanvas().toDataURL('image/jpeg', 0.5);
+        function saveCrop() {
+            myAvatar = cropper.getCroppedCanvas({width:120, height:120}).toDataURL('image/jpeg', 0.7);
             document.getElementById('crop-modal').style.display = 'none';
         }
 
-        function joinRoom() {
-            myName = document.getElementById('name-in').value || "Guest";
+        function enterWorld() {
+            myName = document.getElementById('name-in').value || "Agent_" + myId.substr(4,3);
             document.getElementById('menu-overlay').style.display = 'none';
             document.getElementById('room-ui').style.display = 'block';
-            document.getElementById('room-ui').style.backgroundImage = "url('Room1.jpg')";
 
-            // نووسینی زانیاری من لە فایەربەیس
-            db.ref('presence/' + myId).set({
+            // Initial Position
+            db.ref('world/users/' + myId).set({
                 name: myName,
                 avatar: myAvatar,
                 x: window.innerWidth / 2,
-                y: window.innerHeight / 2
+                y: window.innerHeight / 2,
+                lastAction: ""
             });
 
-            // سڕینەوەی من کاتێک پەیجەکە دادەخەم
-            db.ref('presence/' + myId).onDisconnect().remove();
+            // Auto-Remove on Close
+            db.ref('world/users/' + myId).onDisconnect().remove();
         }
 
-        function updateMyLocation(e) {
-            if(!myName) return;
-            db.ref('presence/' + myId).update({
+        // --- REAL-TIME ENGINE ---
+        function moveMe(e) {
+            if(e.target.closest('button')) return;
+            db.ref('world/users/' + myId).update({
                 x: e.clientX - 60,
                 y: e.clientY - 60
             });
         }
 
-        // گوێگرتن لە هەموو بەکارهێنەرەکان
-        db.ref('presence').on('value', (snapshot) => {
-            const playersLayer = document.getElementById('players-layer');
-            playersLayer.innerHTML = ''; // پاککردنەوە و دووبارە دروستکردنەوە
+        function sendAction(type) {
+            db.ref('world/users/' + myId).update({ lastAction: type, actionTime: Date.now() });
+            // پاککردنەوەی ئەکشنەکە بۆ ئەوەی دووبارە تریگەر نەبێتەوە
+            setTimeout(() => db.ref('world/users/' + myId).update({ lastAction: "" }), 500);
+        }
+
+        // --- RENDERING ---
+        db.ref('world/users').on('value', (snap) => {
+            const layer = document.getElementById('players-layer');
+            const data = snap.val() || {};
             
-            const data = snapshot.val();
-            for (let id in data) {
+            // Render Players
+            layer.innerHTML = '';
+            Object.keys(data).forEach(id => {
                 const p = data[id];
-                const charDiv = document.createElement('div');
-                charDiv.className = 'character';
-                charDiv.style.left = p.x + 'px';
-                charDiv.style.top = p.y + 'px';
-                charDiv.innerHTML = `
+                const div = document.createElement('div');
+                div.className = 'character';
+                div.style.left = p.x + 'px';
+                div.style.top = p.y + 'px';
+                div.innerHTML = `
                     <div class="char-name">${p.name}</div>
                     <div class="char-base">
                         <div class="char-photo" style="background-image:url(${p.avatar})"></div>
                     </div>
                 `;
-                playersLayer.appendChild(charDiv);
-            }
+                layer.appendChild(div);
+
+                // Trigger Particles if action detected
+                if(p.lastAction && p.lastAction !== "") {
+                    spawnParticles(p.x + 60, p.y, p.lastAction);
+                }
+            });
         });
+
+        function spawnParticles(x, y, img) {
+            if(img === 'kiss.png') document.getElementById('kiss-sound').play().catch(()=>{});
+            for(let i=0; i<8; i++) {
+                const part = document.createElement('div');
+                part.className = 'particle';
+                part.style.left = x + 'px';
+                part.style.top = y + 'px';
+                part.style.width = '40px';
+                part.style.height = '40px';
+                part.style.background = `url('${img}') center/contain no-repeat`;
+                part.style.marginLeft = (Math.random() * 60 - 30) + 'px';
+                document.body.appendChild(part);
+                setTimeout(() => part.remove(), 3000);
+            }
+        }
     </script>
 </body>
 </html>
