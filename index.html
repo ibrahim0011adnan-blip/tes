@@ -3,20 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SATORU - FIREBASE LIVE AUTH</title>
+    <title>SATORU - LUXURY HUB</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
     <style>
         :root { 
             --gold: #ffcc33; 
             --deep-obsidian: #050505;
-            --purple-glow: #8e44ad; 
             --neon-border: rgba(255, 204, 51, 0.6);
-            --error-red: #ff3333;
         }
 
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: var(--deep-obsidian); font-family: 'Inter', sans-serif; color: #fff; overflow: hidden; }
 
-        /* --- VOID MENU --- */
         #menu-overlay {
             position: fixed; inset: 0; z-index: 2000;
             background: radial-gradient(circle at center, #11021a 0%, #000 100%);
@@ -35,14 +32,11 @@
         .btn-void { display: block; width: 100%; padding: 18px; margin: 12px 0; background: transparent; border: 1px solid var(--neon-border); color: var(--gold); font-weight: 800; letter-spacing: 2px; cursor: pointer; text-transform: uppercase; transition: 0.4s; }
         .btn-void:hover { background: var(--gold); color: #000; box-shadow: 0 0 25px var(--gold); }
 
-        .picker { background: #000; border: 1px solid var(--neon-border); color: #fff; padding: 15px; width: 100%; margin: 10px 0; font-weight: bold; cursor: pointer; text-transform: uppercase; display: block; }
-        .error-tag { color: var(--error-red); font-size: 11px; font-weight: 900; margin: 10px 0; display: none; }
+        .room-picker { background: #000; border: 1px solid var(--neon-border); color: #fff; padding: 15px; width: 100%; margin: 20px 0; font-weight: bold; cursor: pointer; text-transform: uppercase; }
 
-        /* --- METAVERSE ROOM --- */
         #room-ui { display: none; width: 100vw; height: 100vh; position: relative; background-size: cover; background-position: center; }
         #video-screen { position: absolute; top: 31.5%; left: 38.3%; width: 23.2%; height: 19.5%; background: #000; border: 2px solid #1a1a1a; box-shadow: 0 0 40px rgba(0,0,0,0.9); }
 
-        /* --- CHARACTER SYSTEM --- */
         #character-master { width: 140px; height: 140px; position: absolute; bottom: 20%; left: 50%; z-index: 100; transition: left 1s cubic-bezier(0.2, 0.8, 0.2, 1), top 1s cubic-bezier(0.2, 0.8, 0.2, 1); pointer-events: none; }
         #chat-bubble { position: absolute; bottom: 110%; left: 50%; transform: translateX(-50%) scale(0); width: 160px; height: 160px; background: url('chat.png') center/contain no-repeat; display: flex; align-items: center; justify-content: center; transition: 0.5s; }
         #bubble-text { color: #fff; font-size: 12px; font-weight: 900; text-align: center; width: 60%; }
@@ -51,177 +45,103 @@
         #base-asset { width: 100%; height: 100%; background: url('char.png') center/contain no-repeat; position: relative; }
         #user-photo-overlay { position: absolute; top: 16%; left: 19%; width: 62%; height: 56%; background-size: cover; background-position: center; border-radius: 45px 5px 35px 12px; }
 
-        /* --- CONTROL DECK --- */
         #control-deck { position: absolute; bottom: 40px; right: 40px; display: flex; flex-direction: row; gap: 15px; }
         .deck-btn { background: rgba(0,0,0,0.9); border: 1px solid var(--neon-border); color: var(--gold); padding: 15px 25px; font-weight: 900; font-size: 11px; text-transform: uppercase; cursor: pointer; transition: 0.3s; }
         .deck-btn:hover { background: var(--gold); color: #000; }
         .kick-btn { border-color: #ff3333 !important; color: #ff3333 !important; }
 
-        /* --- ADMIN PANEL --- */
         #admin-panel { position: absolute; top: 20px; left: 20px; z-index: 1500; display: flex; gap: 10px; background: rgba(0,0,0,0.8); padding: 10px; border: 1px solid var(--neon-border); }
         #yt-input { background: #111; border: 1px solid #333; color: var(--gold); padding: 8px; width: 250px; outline: none; font-size: 12px; }
 
-        .particle { position: absolute; pointer-events: none; z-index: 150; animation: pFlow 3.5s forwards; }
-        @keyframes pFlow { 0% { transform: translate(0,0) scale(0); opacity: 0; } 20% { opacity: 1; transform: translate(0, -100px) scale(2) rotate(var(--rot)); } 100% { transform: translate(var(--dx), var(--dy)) scale(0) rotate(calc(var(--rot) * 6)); opacity: 0; } }
         #crop-modal { display: none; position: fixed; inset: 0; z-index: 3000; background: #000; flex-direction: column; align-items: center; justify-content: center; }
     </style>
 </head>
 <body onclick="moveCharacter(event)">
 
-    <audio id="kiss-sound" src="kiss.mp3" preload="auto"></audio>
-
-    <!-- ADMIN NEURAL LINK -->
     <div id="admin-panel" style="display:none;">
-        <input type="text" id="yt-input" placeholder="Paste YouTube URL or ID...">
-        <button class="deck-btn" style="padding: 8px 15px;" onclick="syncVideo()">Update Stream</button>
+        <input type="text" id="yt-input" placeholder="Paste YouTube URL...">
+        <button class="deck-btn" onclick="syncVideo()">Sync</button>
     </div>
 
-    <!-- MENU SECTION -->
     <div id="menu-overlay">
         <div class="void-card">
             <h1>SATORU</h1>
-            
-            <!-- AUTH SELECTOR -->
-            <div id="auth-selector" style="margin-bottom:20px;">
-                <button class="btn-void" style="width: 45%; display:inline-block;" onclick="toggleAuth(true)">Login</button>
-                <button class="btn-void" style="width: 45%; display:inline-block;" onclick="toggleAuth(false)">Register</button>
-            </div>
-
-            <input type="email" id="email-input" class="picker" placeholder="Enter Email..." style="margin-top:0;">
-            <input type="password" id="password-input" class="picker" placeholder="Enter Password...">
-            
-            <div id="error-message" class="error-tag">Error</div>
-
-            <!-- LOGIN VIEW -->
-            <div id="login-controls">
-                <button class="btn-void" style="background: var(--gold); color: #000;" onclick="handleLogin()">Proceed</button>
-            </div>
-
-            <!-- REGISTER VIEW -->
-            <div id="register-controls" style="display:none;">
-                <input type="text" id="nickname-input" class="picker" placeholder="Choose Nickname...">
-                <button class="btn-void" onclick="document.getElementById('file-input').click()">Identity</button>
-                <input type="file" id="file-input" accept="image/*" style="display:none;" onchange="openCrop(event)">
-                <select id="room-selector" class="picker">
-                    <option value="Room3.jpg">Neon District</option>
-                    <option value="Room2.jpg">Gold Vault VIP</option>
-                    <option value="Room1.jpg">Obsidian Penthouse</option>
-                </select>
-                <button class="btn-void" style="background: var(--gold); color: #000;" onclick="handleRegister(true)">Initialize Link</button>
-            </div>
+            <input type="text" id="username-input" class="room-picker" placeholder="Nickname..." style="margin-top:0;">
+            <button class="btn-void" onclick="document.getElementById('file-input').click()">Identity</button>
+            <input type="file" id="file-input" accept="image/*" style="display:none;" onchange="openCrop(event)">
+            <select id="room-selector" class="room-picker">
+                <!-- دڵنیابەرەوە ناوەکان لێرە پیتی گەورەن وەک ناوەکان لە گیتهەب -->
+                <option value="Room3.jpg">Neon District</option>
+                <option value="Room2.jpg">Gold Vault VIP</option>
+                <option value="Room1.jpg">Obsidian Penthouse</option>
+            </select>
+            <button class="btn-void" style="background: var(--gold); color: #000;" onclick="initRoom(true)">Create Hub</button>
         </div>
     </div>
 
-    <!-- CROPPER SECTION -->
     <div id="crop-modal">
-        <div class="void-card" style="width: auto;">
-            <div style="max-width: 400px; margin-bottom: 30px;"><img id="crop-image-preview" style="max-width:100%;"></div>
-            <button class="btn-void" style="background: var(--gold); color: #000;" onclick="applyCrop()">Bio-Sync</button>
-        </div>
+        <div class="void-card" style="width: auto;"><img id="preview" style="max-width:300px;"><br>
+        <button class="btn-void" onclick="applyCrop()">Confirm</button></div>
     </div>
 
-    <!-- MAIN ROOM UI -->
     <div id="room-ui">
         <div id="video-screen"><div id="player"></div></div>
         <div id="character-master">
             <div id="user-name-tag">Ibrahim</div>
-            <div id="chat-bubble"><div id="bubble-text">Ready</div></div>
+            <div id="chat-bubble"><div id="bubble-text">Online</div></div>
             <div id="base-asset"><div id="user-photo-overlay"></div></div>
         </div>
         <div id="control-deck">
-            <button id="kick-btn" class="deck-btn kick-btn" style="display:none;" onclick="triggerBubble('System: Kicking User...')">Kick</button>
-            <button class="deck-btn" onclick="spawnParticles('heart.png')">Heart</button>
-            <button class="deck-btn" onclick="spawnParticles('kiss.png')">Kiss</button>
-            <button class="deck-btn" style="color:#888; border-color:#444;" onclick="location.reload()">Exit</button>
+            <button id="kick-btn" class="deck-btn kick-btn" style="display:none;">Kick</button>
+            <button class="deck-btn" onclick="location.reload()">Exit</button>
         </div>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
     <script src="https://www.youtube.com/iframe_api"></script>
-    <script>
-        // ADD YOUR CONFIG HERE
-        const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_DOMAIN",
-            databaseURL: "YOUR_DB_URL",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_BUCKET",
-            messagingSenderId: "YOUR_SENDER_ID",
-            appId: "YOUR_APP_ID",
-            measurementId: "YOUR_MEASUREMENT_ID"
-        };
-        const app = firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.database(app);
-        
-        let player, bubbleTimer, cropper, bioAsset;
-        const master = document.getElementById('character-master');
-        const overlay = document.getElementById('user-photo-overlay');
 
-        function toggleAuth(showLogin) {
-            document.getElementById('login-controls').style.display = showLogin ? 'block' : 'none';
-            document.getElementById('register-controls').style.display = showLogin ? 'none' : 'block';
-            document.getElementById('error-message').style.display = 'none';
-        }
+    <script>
+        // لێرە زانیارییەکانی فایەربەیسی خۆت دابنێ
+        const firebaseConfig = {
+            apiKey: "AIza...",
+            authDomain: "tes-...",
+            databaseURL: "https://tes-...",
+            projectId: "tes-...",
+            storageBucket: "tes-...",
+            messagingSenderId: "...",
+            appId: "..."
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        let player, cropper, avatarData;
+        const master = document.getElementById('character-master');
 
         function openCrop(e) {
-            const reader = new FileReader(); reader.onload = (ev) => {
-                document.getElementById('crop-image-preview').src = ev.target.result;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                document.getElementById('preview').src = ev.target.result;
                 document.getElementById('crop-modal').style.display = 'flex';
                 if(cropper) cropper.destroy();
-                cropper = new Cropper(document.getElementById('crop-image-preview'), { aspectRatio: 1 });
-            }; reader.readAsDataURL(e.target.files[0]);
-        }
-        function applyCrop() { bioAsset = cropper.getCroppedCanvas().toDataURL(); document.getElementById('crop-modal').style.display = 'none'; }
-        
-        function handleLogin() {
-            const email = document.getElementById('email-input').value;
-            const password = document.getElementById('password-input').value;
-            auth.signInWithEmailAndPassword(email, password).then(u=>syncRoom(false)).catch(e=>triggerError(e.message));
+                cropper = new Cropper(document.getElementById('preview'), { aspectRatio: 1 });
+            };
+            reader.readAsDataURL(e.target.files[0]);
         }
 
-        function handleRegister(creatorMode) {
-            const email = document.getElementById('email-input').value;
-            const password = document.getElementById('password-input').value;
-            const nickname = document.getElementById('nickname-input').value;
-            const selectedRoom = document.getElementById('room-selector').value;
+        function applyCrop() {
+            avatarData = cropper.getCroppedCanvas().toDataURL();
+            document.getElementById('user-photo-overlay').style.backgroundImage = `url(${avatarData})`;
+            document.getElementById('crop-modal').style.display = 'none';
+        }
+
+        window.initRoom = (isAdmin) => {
+            const name = document.getElementById('username-input').value || "User";
+            const room = document.getElementById('room-selector').value;
             
-            if(!bioAsset) { triggerError("System: Define Bio-Asset First."); return; }
-            if(!nickname) { triggerError("System: Define Nickname First."); return; }
-
-            auth.createUserWithEmailAndPassword(email, password).then(userCredential => {
-                const user = userCredential.user;
-                if(creatorMode) {
-                    firebase.database(app).ref('roomState').update({ admin: user.uid, background: selectedRoom, currentVideo: "dQw4w9WgXcQ" });
-                }
-                firebase.database(app).ref('users/' + user.uid).set({ nickname: nickname, avatar: bioAsset, isAdmin: creatorMode });
-                syncRoom(creatorMode, nickname, selectedRoom);
-            }).catch(e=>triggerError(e.message));
-        }
-
-        function syncRoom(creatorMode, nickname, selectedRoom) {
-            if(!creatorMode) {
-                const user = auth.currentUser;
-                firebase.database(app).ref('users/' + user.uid).once('value', s => {
-                    const data = s.val();
-                    bioAsset = data.avatar;
-                    nickname = data.nickname;
-                    firebase.database(app).ref('roomState').once('value', ss => {
-                        selectedRoom = ss.val().background;
-                        showRoom(data.isAdmin, nickname, selectedRoom);
-                    });
-                });
-            } else {
-                showRoom(true, nickname, selectedRoom);
-            }
-        }
-
-        function showRoom(isAdmin, nickname, selectedRoom) {
-            overlay.style.backgroundImage = `url(${bioAsset})`;
-            document.getElementById('user-name-tag').textContent = nickname;
-            document.getElementById('room-ui').style.backgroundImage = `url('${selectedRoom}')`;
+            document.getElementById('user-name-tag').textContent = name;
+            document.getElementById('room-ui').style.backgroundImage = `url('${room}')`;
             document.getElementById('menu-overlay').style.display = 'none';
             document.getElementById('room-ui').style.display = 'block';
 
@@ -229,22 +149,27 @@
                 document.getElementById('admin-panel').style.display = 'flex';
                 document.getElementById('kick-btn').style.display = 'block';
                 document.getElementById('user-name-tag').classList.add('admin-glow');
-                triggerBubble("Admin Access Granted.");
-            } else {
-                triggerBubble("Connected.");
+                db.ref('roomState').set({ background: room, video: "dQw4w9WgXcQ" });
             }
+        };
+
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('player', { height: '100%', width: '100%', videoId: 'dQw4w9WgXcQ' });
         }
 
-        function triggerBubble(text) { document.getElementById('bubble-text').textContent = text; document.getElementById('chat-bubble').style.transform = "translateX(-50%) scale(1)"; if(bubbleTimer) clearTimeout(bubbleTimer); bubbleTimer = setTimeout(() => document.getElementById('chat-bubble').style.transform = "translateX(-50%) scale(0)", 3000); }
-        function triggerError(text) { const errorTag = document.getElementById('error-message'); errorTag.textContent = text; errorTag.style.display = 'block'; }
-        function moveCharacter(e) { if(e.target.closest('button') || e.target.closest('input') || e.target.closest('select')) return; master.style.left = (e.clientX - 70) + 'px'; master.style.top = (e.clientY - 70) + 'px'; }
-        
-        firebase.database(app).ref('roomState/currentVideo').on('value', (snapshot) => { const videoId = snapshot.val(); if(window.player && videoId) window.player.loadVideoById(videoId); });
-        function syncVideo() { const val = document.getElementById('yt-input').value; let videoId = val; if (val.includes('v=')) videoId = val.split('v=')[1].split('&')[0]; else if (val.includes('youtu.be/')) videoId = val.split('youtu.be/')[1].split('?')[0]; if(videoId) firebase.database(app).ref('roomState').update({ currentVideo: videoId }); }
-        
-        function onYouTubeIframeAPIReady() { window.player = new YT.Player('player', { height: '100%', width: '100%', videoId: 'dQw4w9WgXcQ' }); }
-        function spawnParticles(img) { if(img === 'kiss.png') document.getElementById('kiss-sound').play().catch(()=>{}); for(let i=0; i<15; i++) { setTimeout(() => { const p = document.createElement('div'); p.className = 'particle'; p.style.width = '40px'; p.style.height = '40px'; p.style.background = `url('${img}') center/contain no-repeat`; p.style.left = (master.offsetLeft + 50) + 'px'; p.style.top = (master.offsetTop - 20) + 'px'; p.style.setProperty('--dx', (Math.random() * 600 - 300) + 'px'); p.style.setProperty('--dy', '-500px'); p.style.setProperty('--rot', (Math.random() * 360) + 'deg'); document.body.appendChild(p); setTimeout(() => p.remove(), 3500); }, i * 100); } }
+        function syncVideo() {
+            const url = document.getElementById('yt-input').value;
+            const id = url.split('v=')[1]?.split('&')[0] || url;
+            db.ref('roomState').update({ video: id });
+        }
+
+        db.ref('roomState/video').on('value', s => { if(player && s.val()) player.loadVideoById(s.val()); });
+
+        function moveCharacter(e) {
+            if(e.target.closest('button') || e.target.closest('input')) return;
+            master.style.left = (e.clientX - 70) + 'px';
+            master.style.top = (e.clientY - 70) + 'px';
+        }
     </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
 </body>
 </html>
