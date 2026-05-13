@@ -3,173 +3,134 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SATORU - LUXURY HUB</title>
+    <title>SATORU - MULTI HUB</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
     <style>
-        :root { 
-            --gold: #ffcc33; 
-            --deep-obsidian: #050505;
-            --neon-border: rgba(255, 204, 51, 0.6);
-        }
-
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: var(--deep-obsidian); font-family: 'Inter', sans-serif; color: #fff; overflow: hidden; }
-
-        #menu-overlay {
-            position: fixed; inset: 0; z-index: 2000;
-            background: radial-gradient(circle at center, #11021a 0%, #000 100%);
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-        }
-
-        .void-card {
-            background: rgba(5, 5, 5, 0.95);
-            border: 1px solid var(--neon-border);
-            padding: 50px; width: 380px; text-align: center;
-            box-shadow: 0 0 60px rgba(142, 68, 173, 0.15);
-        }
-
-        h1 { color: var(--gold); font-size: 3rem; font-weight: 900; letter-spacing: 12px; margin: 0 0 40px 0; text-transform: uppercase; }
-
-        .btn-void { display: block; width: 100%; padding: 18px; margin: 12px 0; background: transparent; border: 1px solid var(--neon-border); color: var(--gold); font-weight: 800; letter-spacing: 2px; cursor: pointer; text-transform: uppercase; transition: 0.4s; }
-        .btn-void:hover { background: var(--gold); color: #000; box-shadow: 0 0 25px var(--gold); }
-
-        .room-picker { background: #000; border: 1px solid var(--neon-border); color: #fff; padding: 15px; width: 100%; margin: 20px 0; font-weight: bold; cursor: pointer; text-transform: uppercase; }
-
+        :root { --gold: #ffcc33; --obsidian: #050505; --border: rgba(255, 204, 51, 0.5); }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: var(--obsidian); font-family: sans-serif; overflow: hidden; }
+        
+        #menu-overlay { position: fixed; inset: 0; z-index: 2000; background: #000; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .void-card { border: 1px solid var(--border); padding: 40px; text-align: center; background: #080808; width: 320px; }
+        .btn-void { width: 100%; padding: 15px; margin: 10px 0; background: transparent; border: 1px solid var(--border); color: var(--gold); cursor: pointer; text-transform: uppercase; font-weight: bold; }
+        .btn-void:hover { background: var(--gold); color: #000; }
+        
         #room-ui { display: none; width: 100vw; height: 100vh; position: relative; background-size: cover; background-position: center; }
-        #video-screen { position: absolute; top: 31.5%; left: 38.3%; width: 23.2%; height: 19.5%; background: #000; border: 2px solid #1a1a1a; box-shadow: 0 0 40px rgba(0,0,0,0.9); }
-
-        #character-master { width: 140px; height: 140px; position: absolute; bottom: 20%; left: 50%; z-index: 100; transition: left 1s cubic-bezier(0.2, 0.8, 0.2, 1), top 1s cubic-bezier(0.2, 0.8, 0.2, 1); pointer-events: none; }
-        #chat-bubble { position: absolute; bottom: 110%; left: 50%; transform: translateX(-50%) scale(0); width: 160px; height: 160px; background: url('chat.png') center/contain no-repeat; display: flex; align-items: center; justify-content: center; transition: 0.5s; }
-        #bubble-text { color: #fff; font-size: 12px; font-weight: 900; text-align: center; width: 60%; }
-        #user-name-tag { position: absolute; top: -30px; left: 50%; transform: translateX(-50%); font-weight: 900; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: #fff; text-shadow: 0 0 10px rgba(0,0,0,0.8); }
-        .admin-glow { color: var(--gold) !important; text-shadow: 0 0 15px var(--gold) !important; }
-        #base-asset { width: 100%; height: 100%; background: url('char.png') center/contain no-repeat; position: relative; }
-        #user-photo-overlay { position: absolute; top: 16%; left: 19%; width: 62%; height: 56%; background-size: cover; background-position: center; border-radius: 45px 5px 35px 12px; }
-
-        #control-deck { position: absolute; bottom: 40px; right: 40px; display: flex; flex-direction: row; gap: 15px; }
-        .deck-btn { background: rgba(0,0,0,0.9); border: 1px solid var(--neon-border); color: var(--gold); padding: 15px 25px; font-weight: 900; font-size: 11px; text-transform: uppercase; cursor: pointer; transition: 0.3s; }
-        .deck-btn:hover { background: var(--gold); color: #000; }
-        .kick-btn { border-color: #ff3333 !important; color: #ff3333 !important; }
-
-        #admin-panel { position: absolute; top: 20px; left: 20px; z-index: 1500; display: flex; gap: 10px; background: rgba(0,0,0,0.8); padding: 10px; border: 1px solid var(--neon-border); }
-        #yt-input { background: #111; border: 1px solid #333; color: var(--gold); padding: 8px; width: 250px; outline: none; font-size: 12px; }
-
-        #crop-modal { display: none; position: fixed; inset: 0; z-index: 3000; background: #000; flex-direction: column; align-items: center; justify-content: center; }
+        
+        /* CHARACTER STYLE */
+        .character { width: 120px; height: 120px; position: absolute; transition: all 0.5s ease; pointer-events: none; }
+        .char-base { width: 100%; height: 100%; background: url('char.png') center/contain no-repeat; position: relative; }
+        .char-photo { position: absolute; top: 16%; left: 19%; width: 62%; height: 56%; background-size: cover; border-radius: 50%; }
+        .char-name { position: absolute; top: -25px; left: 50%; transform: translateX(-50%); color: #fff; font-weight: bold; text-shadow: 0 0 5px #000; white-space: nowrap; }
+        
+        #video-screen { position: absolute; top: 30%; left: 38%; width: 24%; height: 20%; background: #000; border: 2px solid #222; }
+        #crop-modal { display: none; position: fixed; inset: 0; z-index: 3000; background: #000; align-items: center; justify-content: center; flex-direction: column; }
     </style>
 </head>
-<body onclick="moveCharacter(event)">
-
-    <div id="admin-panel" style="display:none;">
-        <input type="text" id="yt-input" placeholder="Paste YouTube URL...">
-        <button class="deck-btn" onclick="syncVideo()">Sync</button>
-    </div>
+<body onclick="updateMyLocation(event)">
 
     <div id="menu-overlay">
         <div class="void-card">
-            <h1>SATORU</h1>
-            <input type="text" id="username-input" class="room-picker" placeholder="Nickname..." style="margin-top:0;">
-            <button class="btn-void" onclick="document.getElementById('file-input').click()">Identity</button>
-            <input type="file" id="file-input" accept="image/*" style="display:none;" onchange="openCrop(event)">
-            <select id="room-selector" class="room-picker">
-                <!-- دڵنیابەرەوە ناوەکان لێرە پیتی گەورەن وەک ناوەکان لە گیتهەب -->
-                <option value="Room3.jpg">Neon District</option>
-                <option value="Room2.jpg">Gold Vault VIP</option>
-                <option value="Room1.jpg">Obsidian Penthouse</option>
-            </select>
-            <button class="btn-void" style="background: var(--gold); color: #000;" onclick="initRoom(true)">Create Hub</button>
+            <h2 style="color:var(--gold)">SATORU HUB</h2>
+            <input type="text" id="name-in" placeholder="Your Name..." style="width:90%; padding:10px; margin-bottom:10px;">
+            <button class="btn-void" onclick="document.getElementById('file-in').click()">Upload Avatar</button>
+            <input type="file" id="file-in" hidden onchange="startCrop(event)">
+            <button class="btn-void" style="background:var(--gold); color:#000" onclick="joinRoom()">Enter Room</button>
         </div>
     </div>
 
     <div id="crop-modal">
-        <div class="void-card" style="width: auto;"><img id="preview" style="max-width:300px;"><br>
-        <button class="btn-void" onclick="applyCrop()">Confirm</button></div>
+        <img id="crop-prev" style="max-width:300px;">
+        <button class="btn-void" onclick="finishCrop()">Apply</button>
     </div>
 
     <div id="room-ui">
         <div id="video-screen"><div id="player"></div></div>
-        <div id="character-master">
-            <div id="user-name-tag">Ibrahim</div>
-            <div id="chat-bubble"><div id="bubble-text">Online</div></div>
-            <div id="base-asset"><div id="user-photo-overlay"></div></div>
-        </div>
-        <div id="control-deck">
-            <button id="kick-btn" class="deck-btn kick-btn" style="display:none;">Kick</button>
-            <button class="deck-btn" onclick="location.reload()">Exit</button>
-        </div>
+        <div id="players-layer"></div>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
-    <script src="https://www.youtube.com/iframe_api"></script>
 
     <script>
-        // لێرە زانیارییەکانی فایەربەیسی خۆت دابنێ
         const firebaseConfig = {
             apiKey: "AIza...",
             authDomain: "tes-...",
             databaseURL: "https://tes-...",
             projectId: "tes-...",
             storageBucket: "tes-...",
-            messagingSenderId: "...",
             appId: "..."
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
+        
+        let myId = Math.random().toString(36).substring(7);
+        let myName = "";
+        let myAvatar = "";
+        let cropper;
 
-        let player, cropper, avatarData;
-        const master = document.getElementById('character-master');
-
-        function openCrop(e) {
+        function startCrop(e) {
             const reader = new FileReader();
             reader.onload = (ev) => {
-                document.getElementById('preview').src = ev.target.result;
+                document.getElementById('crop-prev').src = ev.target.result;
                 document.getElementById('crop-modal').style.display = 'flex';
-                if(cropper) cropper.destroy();
-                cropper = new Cropper(document.getElementById('preview'), { aspectRatio: 1 });
+                cropper = new Cropper(document.getElementById('crop-prev'), {aspectRatio: 1});
             };
             reader.readAsDataURL(e.target.files[0]);
         }
 
-        function applyCrop() {
-            avatarData = cropper.getCroppedCanvas().toDataURL();
-            document.getElementById('user-photo-overlay').style.backgroundImage = `url(${avatarData})`;
+        function finishCrop() {
+            myAvatar = cropper.getCroppedCanvas().toDataURL('image/jpeg', 0.5);
             document.getElementById('crop-modal').style.display = 'none';
         }
 
-        window.initRoom = (isAdmin) => {
-            const name = document.getElementById('username-input').value || "User";
-            const room = document.getElementById('room-selector').value;
-            
-            document.getElementById('user-name-tag').textContent = name;
-            document.getElementById('room-ui').style.backgroundImage = `url('${room}')`;
+        function joinRoom() {
+            myName = document.getElementById('name-in').value || "Guest";
             document.getElementById('menu-overlay').style.display = 'none';
             document.getElementById('room-ui').style.display = 'block';
+            document.getElementById('room-ui').style.backgroundImage = "url('Room1.jpg')";
 
-            if(isAdmin) {
-                document.getElementById('admin-panel').style.display = 'flex';
-                document.getElementById('kick-btn').style.display = 'block';
-                document.getElementById('user-name-tag').classList.add('admin-glow');
-                db.ref('roomState').set({ background: room, video: "dQw4w9WgXcQ" });
+            // نووسینی زانیاری من لە فایەربەیس
+            db.ref('presence/' + myId).set({
+                name: myName,
+                avatar: myAvatar,
+                x: window.innerWidth / 2,
+                y: window.innerHeight / 2
+            });
+
+            // سڕینەوەی من کاتێک پەیجەکە دادەخەم
+            db.ref('presence/' + myId).onDisconnect().remove();
+        }
+
+        function updateMyLocation(e) {
+            if(!myName) return;
+            db.ref('presence/' + myId).update({
+                x: e.clientX - 60,
+                y: e.clientY - 60
+            });
+        }
+
+        // گوێگرتن لە هەموو بەکارهێنەرەکان
+        db.ref('presence').on('value', (snapshot) => {
+            const playersLayer = document.getElementById('players-layer');
+            playersLayer.innerHTML = ''; // پاککردنەوە و دووبارە دروستکردنەوە
+            
+            const data = snapshot.val();
+            for (let id in data) {
+                const p = data[id];
+                const charDiv = document.createElement('div');
+                charDiv.className = 'character';
+                charDiv.style.left = p.x + 'px';
+                charDiv.style.top = p.y + 'px';
+                charDiv.innerHTML = `
+                    <div class="char-name">${p.name}</div>
+                    <div class="char-base">
+                        <div class="char-photo" style="background-image:url(${p.avatar})"></div>
+                    </div>
+                `;
+                playersLayer.appendChild(charDiv);
             }
-        };
-
-        function onYouTubeIframeAPIReady() {
-            player = new YT.Player('player', { height: '100%', width: '100%', videoId: 'dQw4w9WgXcQ' });
-        }
-
-        function syncVideo() {
-            const url = document.getElementById('yt-input').value;
-            const id = url.split('v=')[1]?.split('&')[0] || url;
-            db.ref('roomState').update({ video: id });
-        }
-
-        db.ref('roomState/video').on('value', s => { if(player && s.val()) player.loadVideoById(s.val()); });
-
-        function moveCharacter(e) {
-            if(e.target.closest('button') || e.target.closest('input')) return;
-            master.style.left = (e.clientX - 70) + 'px';
-            master.style.top = (e.clientY - 70) + 'px';
-        }
+        });
     </script>
 </body>
 </html>
